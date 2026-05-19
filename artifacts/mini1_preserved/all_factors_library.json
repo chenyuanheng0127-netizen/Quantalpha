@@ -1,0 +1,571 @@
+{
+  "metadata": {
+    "created_at": "2026-05-18T22:43:00.214100",
+    "last_updated": "2026-05-19T02:24:18.204693",
+    "total_factors": 12,
+    "version": "1.0"
+  },
+  "factors": {
+    "0dfbad7107a6805b": {
+      "factor_id": "0dfbad7107a6805b",
+      "factor_name": "Rank_Momentum_Spread_5_20_Close",
+      "factor_expression": "RANK(TS_PCTCHANGE($close, 5) - TS_PCTCHANGE($close, 20))",
+      "factor_implementation_code": "File: factor.py\n\n\nimport pandas as pd\nimport numpy as np\nimport os\nfrom quantaalpha.factors.coder.expr_parser import parse_expression, parse_symbol\nfrom quantaalpha.factors.coder.function_lib import *\n\n\ndef calculate_factor(expr: str, name: str):\n    from quantaalpha.factors.mini1_train_loader import compute_factor_from_train\n\n    result = compute_factor_from_train(expr, name)\n\n    if os.path.exists('result.h5'):\n        os.remove('result.h5')\n    result.to_hdf('result.h5', key='data')\n\nif __name__ == '__main__':\n    # Input factor expression. Do NOT use the variable format like \"df['$xxx']\" in factor expressions. Instead, you should use \"$xxx\". \n    expr = \"RANK(TS_PCTCHANGE($close, 5) - TS_PCTCHANGE($close, 20))\" # Your output factor expression will be filled in here\n    name = \"Rank_Momentum_Spread_5_20_Close\" # Your output factor name will be filled in here\n    calculate_factor(expr, name)",
+      "factor_description": "Cross-sectional rank of the difference between the 5-day and 20-day percentage changes of closing prices, capturing the tension between short-term momentum and medium-term reversal.",
+      "factor_formulation": "\\text{Rank}\\left(\\frac{\\text{close}_t - \\text{close}_{t-5}}{\\text{close}_{t-5}} - \\frac{\\text{close}_t - \\text{close}_{t-20}}{\\text{close}_{t-20}}\\right)",
+      "cache_location": {
+        "workspace_suffix": "",
+        "workspace_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace",
+        "factor_dir": "d65198b766d5489da72b767777e48d68",
+        "result_h5_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace/d65198b766d5489da72b767777e48d68/result.h5"
+      },
+      "metadata": {
+        "experiment_id": "2026-05-18_08-39-31-349821",
+        "round_number": 0,
+        "evolution_phase": "original",
+        "trajectory_id": "75155e8b4119",
+        "parent_trajectory_ids": [],
+        "hypothesis": "Hypothesis: A multi-scale momentum-reversal factor defined as the difference between the 5-day and the 20-day cumulative log returns can predict future short-term returns, as it captures the tension between short-term trend persistence and medium-term mean reversion.\n                Concise Observation: Given daily price data, constructing rolling return windows of different lengths is feasible; empirical evidence suggests that momentum and reversal operate at distinct time scales (e.g., 1-week momentum and 1-month reversal).\n                Concise Justification: Behavioral finance posits that investors initially underreact to information (causing short-term momentum) and later overreact (causing medium-term reversal); a factor that measures the net effect should have predictive power.\n                Concise Knowledge: When short-term returns exhibit momentum and medium-term returns exhibit reversal, a factor that isolates the divergence between these two horizons can identify assets where the short-term trend is likely to reverse, providing a robust signal for mean-reversion strategies.\n                concise Specification: Factor = (close_t / close_{t-5} - 1) - (close_t / close_{t-20} - 1), computed daily using adjusted close prices, requiring a minimum of 20 prior trading days; the factor is expected to be negatively correlated with subsequent 5-day returns if mean-reversion dominates.\n                ",
+        "initial_direction": "Multi-scale momentum and mean-reversion: Engineer features combining time-series momentum signals across multiple horizons (1-min, 5-min, 15-min) to exploit short-term trends and reversals concurrently.",
+        "planning_direction": "Multi-scale momentum and mean-reversion: Engineer features combining time-series momentum signals across multiple horizons (1-min, 5-min, 15-min) to exploit short-term trends and reversals concurrently.",
+        "created_at": "2026-05-18T22:43:00.214826"
+      },
+      "backtest_results": {
+        "Rank IC": 0.01628397,
+        "1day.excess_return_with_cost.annualized_return": 0.10471422,
+        "IC": 0.01588159,
+        "1day.excess_return_with_cost.information_ratio": 0.61219353,
+        "1day.excess_return_without_cost.information_ratio": 1.13798599,
+        "1day.pos": 0.0,
+        "1day.excess_return_with_cost.max_drawdown": -0.03951334,
+        "ICIR": 0.07798736,
+        "1day.excess_return_without_cost.mean": 0.00081847,
+        "1day.ffr": 1.0,
+        "Rank ICIR": 0.08229639,
+        "1day.excess_return_without_cost.max_drawdown": -0.03834809,
+        "1day.pa": 0.0,
+        "1day.excess_return_without_cost.annualized_return": 0.19479699,
+        "1day.excess_return_with_cost.mean": 0.00043998,
+        "1day.excess_return_with_cost.std": 0.01108737,
+        "1day.excess_return_without_cost.std": 0.01109575
+      },
+      "feedback": {
+        "observations": "The implemented factors show positive predictive power with an IC of 0.016, annualized return of 19.5%, and a low maximum drawdown of -3.8%. The performance supports the hypothesis that the tension between short-term and medium-term returns contains predictive information. No previous SOTA result was provided for comparison, so these results serve as a strong baseline.",
+        "hypothesis_evaluation": "The positive IC and strong return indicate that the 5-day vs 20-day return spread is indeed a valid signal. The cross-sectional rank enhances robustness. However, the current factors use percentage changes of close or raw returns rather than log returns, which may not fully capture the intended cumulative log return concept. Further refinements can explore actual log returns.",
+        "decision": true,
+        "reason": "The hypothesis is supported, and the current factors perform well, but we can further refine the mathematical representation to align with the original idea of log returns, and explore parameter variations to find the optimal trade-off between momentum and reversal.",
+        "new_hypothesis": "A refined momentum-reversal factor based on the cross-sectional rank of volatility-normalized difference between short-term and medium-term log returns, with optimized lookback windows, will improve predictive accuracy and stability."
+      }
+    },
+    "f42cb35ab7715af7": {
+      "factor_id": "f42cb35ab7715af7",
+      "factor_name": "Rank_Momentum_Spread_5_20_Return",
+      "factor_expression": "RANK(TS_SUM($return, 5) - TS_SUM($return, 20))",
+      "factor_implementation_code": "File: factor.py\n\n\nimport pandas as pd\nimport numpy as np\nimport os\nfrom quantaalpha.factors.coder.expr_parser import parse_expression, parse_symbol\nfrom quantaalpha.factors.coder.function_lib import *\n\n\ndef calculate_factor(expr: str, name: str):\n    from quantaalpha.factors.mini1_train_loader import compute_factor_from_train\n\n    result = compute_factor_from_train(expr, name)\n\n    if os.path.exists('result.h5'):\n        os.remove('result.h5')\n    result.to_hdf('result.h5', key='data')\n\nif __name__ == '__main__':\n    # Input factor expression. Do NOT use the variable format like \"df['$xxx']\" in factor expressions. Instead, you should use \"$xxx\". \n    expr = \"RANK(TS_PCTCHANGE($close, 5) - TS_PCTCHANGE($close, 20))\" # Your output factor expression will be filled in here\n    name = \"Rank_Momentum_Spread_5_20_Return\" # Your output factor name will be filled in here\n    calculate_factor(expr, name)",
+      "factor_description": "Cross-sectional rank of the difference between 5-day and 20-day cumulative returns, directly measuring short-term versus medium-term performance.",
+      "factor_formulation": "\\text{Rank}\\left(\\sum_{i=1}^{5} r_{t-i+1} - \\sum_{i=1}^{20} r_{t-i+1}\\right)",
+      "cache_location": {
+        "workspace_suffix": "",
+        "workspace_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace",
+        "factor_dir": "0fc969e8eef44b0aaf452132c73c6ddd",
+        "result_h5_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace/0fc969e8eef44b0aaf452132c73c6ddd/result.h5"
+      },
+      "metadata": {
+        "experiment_id": "2026-05-18_08-39-31-349821",
+        "round_number": 0,
+        "evolution_phase": "original",
+        "trajectory_id": "75155e8b4119",
+        "parent_trajectory_ids": [],
+        "hypothesis": "Hypothesis: A multi-scale momentum-reversal factor defined as the difference between the 5-day and the 20-day cumulative log returns can predict future short-term returns, as it captures the tension between short-term trend persistence and medium-term mean reversion.\n                Concise Observation: Given daily price data, constructing rolling return windows of different lengths is feasible; empirical evidence suggests that momentum and reversal operate at distinct time scales (e.g., 1-week momentum and 1-month reversal).\n                Concise Justification: Behavioral finance posits that investors initially underreact to information (causing short-term momentum) and later overreact (causing medium-term reversal); a factor that measures the net effect should have predictive power.\n                Concise Knowledge: When short-term returns exhibit momentum and medium-term returns exhibit reversal, a factor that isolates the divergence between these two horizons can identify assets where the short-term trend is likely to reverse, providing a robust signal for mean-reversion strategies.\n                concise Specification: Factor = (close_t / close_{t-5} - 1) - (close_t / close_{t-20} - 1), computed daily using adjusted close prices, requiring a minimum of 20 prior trading days; the factor is expected to be negatively correlated with subsequent 5-day returns if mean-reversion dominates.\n                ",
+        "initial_direction": "Multi-scale momentum and mean-reversion: Engineer features combining time-series momentum signals across multiple horizons (1-min, 5-min, 15-min) to exploit short-term trends and reversals concurrently.",
+        "planning_direction": "Multi-scale momentum and mean-reversion: Engineer features combining time-series momentum signals across multiple horizons (1-min, 5-min, 15-min) to exploit short-term trends and reversals concurrently.",
+        "created_at": "2026-05-18T22:43:06.262343"
+      },
+      "backtest_results": {
+        "Rank IC": 0.01628397,
+        "1day.excess_return_with_cost.annualized_return": 0.10471422,
+        "IC": 0.01588159,
+        "1day.excess_return_with_cost.information_ratio": 0.61219353,
+        "1day.excess_return_without_cost.information_ratio": 1.13798599,
+        "1day.pos": 0.0,
+        "1day.excess_return_with_cost.max_drawdown": -0.03951334,
+        "ICIR": 0.07798736,
+        "1day.excess_return_without_cost.mean": 0.00081847,
+        "1day.ffr": 1.0,
+        "Rank ICIR": 0.08229639,
+        "1day.excess_return_without_cost.max_drawdown": -0.03834809,
+        "1day.pa": 0.0,
+        "1day.excess_return_without_cost.annualized_return": 0.19479699,
+        "1day.excess_return_with_cost.mean": 0.00043998,
+        "1day.excess_return_with_cost.std": 0.01108737,
+        "1day.excess_return_without_cost.std": 0.01109575
+      },
+      "feedback": {
+        "observations": "The implemented factors show positive predictive power with an IC of 0.016, annualized return of 19.5%, and a low maximum drawdown of -3.8%. The performance supports the hypothesis that the tension between short-term and medium-term returns contains predictive information. No previous SOTA result was provided for comparison, so these results serve as a strong baseline.",
+        "hypothesis_evaluation": "The positive IC and strong return indicate that the 5-day vs 20-day return spread is indeed a valid signal. The cross-sectional rank enhances robustness. However, the current factors use percentage changes of close or raw returns rather than log returns, which may not fully capture the intended cumulative log return concept. Further refinements can explore actual log returns.",
+        "decision": true,
+        "reason": "The hypothesis is supported, and the current factors perform well, but we can further refine the mathematical representation to align with the original idea of log returns, and explore parameter variations to find the optimal trade-off between momentum and reversal.",
+        "new_hypothesis": "A refined momentum-reversal factor based on the cross-sectional rank of volatility-normalized difference between short-term and medium-term log returns, with optimized lookback windows, will improve predictive accuracy and stability."
+      }
+    },
+    "72d9b567f11a8a5a": {
+      "factor_id": "72d9b567f11a8a5a",
+      "factor_name": "Volatility_Adjusted_Momentum_Spread_5_20",
+      "factor_expression": "RANK((TS_PCTCHANGE($close, 5) - TS_PCTCHANGE($close, 20)) / (TS_STD($close, 20) + 1e-8))",
+      "factor_implementation_code": "File: factor.py\n\n\nimport pandas as pd\nimport numpy as np\nimport os\nfrom quantaalpha.factors.coder.expr_parser import parse_expression, parse_symbol\nfrom quantaalpha.factors.coder.function_lib import *\n\n\ndef calculate_factor(expr: str, name: str):\n    from quantaalpha.factors.mini1_train_loader import compute_factor_from_train\n\n    result = compute_factor_from_train(expr, name)\n\n    if os.path.exists('result.h5'):\n        os.remove('result.h5')\n    result.to_hdf('result.h5', key='data')\n\nif __name__ == '__main__':\n    # Input factor expression. Do NOT use the variable format like \"df['$xxx']\" in factor expressions. Instead, you should use \"$xxx\". \n    expr = \"RANK((TS_PCTCHANGE($close, 5) - TS_PCTCHANGE($close, 20)) / (TS_STD($close, 20) + 1e-8))\" # Your output factor expression will be filled in here\n    name = \"Volatility_Adjusted_Momentum_Spread_5_20\" # Your output factor name will be filled in here\n    calculate_factor(expr, name)",
+      "factor_description": "The 5-day vs 20-day percentage change spread divided by the 20-day closing price volatility, cross-sectionally ranked to reduce noise and normalize.",
+      "factor_formulation": "\\text{Rank}\\left(\\frac{\\frac{\\text{close}_t - \\text{close}_{t-5}}{\\text{close}_{t-5}} - \\frac{\\text{close}_t - \\text{close}_{t-20}}{\\text{close}_{t-20}}}{\\sigma_{20}(\\text{close}) + \\epsilon}\\right)",
+      "cache_location": {
+        "workspace_suffix": "",
+        "workspace_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace",
+        "factor_dir": "8b3c5b8c528e412fa07bdf8f968d3e95",
+        "result_h5_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace/8b3c5b8c528e412fa07bdf8f968d3e95/result.h5"
+      },
+      "metadata": {
+        "experiment_id": "2026-05-18_08-39-31-349821",
+        "round_number": 0,
+        "evolution_phase": "original",
+        "trajectory_id": "75155e8b4119",
+        "parent_trajectory_ids": [],
+        "hypothesis": "Hypothesis: A multi-scale momentum-reversal factor defined as the difference between the 5-day and the 20-day cumulative log returns can predict future short-term returns, as it captures the tension between short-term trend persistence and medium-term mean reversion.\n                Concise Observation: Given daily price data, constructing rolling return windows of different lengths is feasible; empirical evidence suggests that momentum and reversal operate at distinct time scales (e.g., 1-week momentum and 1-month reversal).\n                Concise Justification: Behavioral finance posits that investors initially underreact to information (causing short-term momentum) and later overreact (causing medium-term reversal); a factor that measures the net effect should have predictive power.\n                Concise Knowledge: When short-term returns exhibit momentum and medium-term returns exhibit reversal, a factor that isolates the divergence between these two horizons can identify assets where the short-term trend is likely to reverse, providing a robust signal for mean-reversion strategies.\n                concise Specification: Factor = (close_t / close_{t-5} - 1) - (close_t / close_{t-20} - 1), computed daily using adjusted close prices, requiring a minimum of 20 prior trading days; the factor is expected to be negatively correlated with subsequent 5-day returns if mean-reversion dominates.\n                ",
+        "initial_direction": "Multi-scale momentum and mean-reversion: Engineer features combining time-series momentum signals across multiple horizons (1-min, 5-min, 15-min) to exploit short-term trends and reversals concurrently.",
+        "planning_direction": "Multi-scale momentum and mean-reversion: Engineer features combining time-series momentum signals across multiple horizons (1-min, 5-min, 15-min) to exploit short-term trends and reversals concurrently.",
+        "created_at": "2026-05-18T22:43:15.522992"
+      },
+      "backtest_results": {
+        "Rank IC": 0.01628397,
+        "1day.excess_return_with_cost.annualized_return": 0.10471422,
+        "IC": 0.01588159,
+        "1day.excess_return_with_cost.information_ratio": 0.61219353,
+        "1day.excess_return_without_cost.information_ratio": 1.13798599,
+        "1day.pos": 0.0,
+        "1day.excess_return_with_cost.max_drawdown": -0.03951334,
+        "ICIR": 0.07798736,
+        "1day.excess_return_without_cost.mean": 0.00081847,
+        "1day.ffr": 1.0,
+        "Rank ICIR": 0.08229639,
+        "1day.excess_return_without_cost.max_drawdown": -0.03834809,
+        "1day.pa": 0.0,
+        "1day.excess_return_without_cost.annualized_return": 0.19479699,
+        "1day.excess_return_with_cost.mean": 0.00043998,
+        "1day.excess_return_with_cost.std": 0.01108737,
+        "1day.excess_return_without_cost.std": 0.01109575
+      },
+      "feedback": {
+        "observations": "The implemented factors show positive predictive power with an IC of 0.016, annualized return of 19.5%, and a low maximum drawdown of -3.8%. The performance supports the hypothesis that the tension between short-term and medium-term returns contains predictive information. No previous SOTA result was provided for comparison, so these results serve as a strong baseline.",
+        "hypothesis_evaluation": "The positive IC and strong return indicate that the 5-day vs 20-day return spread is indeed a valid signal. The cross-sectional rank enhances robustness. However, the current factors use percentage changes of close or raw returns rather than log returns, which may not fully capture the intended cumulative log return concept. Further refinements can explore actual log returns.",
+        "decision": true,
+        "reason": "The hypothesis is supported, and the current factors perform well, but we can further refine the mathematical representation to align with the original idea of log returns, and explore parameter variations to find the optimal trade-off between momentum and reversal.",
+        "new_hypothesis": "A refined momentum-reversal factor based on the cross-sectional rank of volatility-normalized difference between short-term and medium-term log returns, with optimized lookback windows, will improve predictive accuracy and stability."
+      }
+    },
+    "12c010381d152918": {
+      "factor_id": "12c010381d152918",
+      "factor_name": "ShortLongRetDiff_VolNorm_Rank",
+      "factor_expression": "RANK((TS_PCTCHANGE($close, 5) - TS_PCTCHANGE($close, 20)) / (TS_STD($return, 20) + 1e-8))",
+      "factor_implementation_code": "File: factor.py\n\n\nimport pandas as pd\nimport numpy as np\nimport os\nfrom quantaalpha.factors.coder.expr_parser import parse_expression, parse_symbol\nfrom quantaalpha.factors.coder.function_lib import *\n\n\ndef calculate_factor(expr: str, name: str):\n    from quantaalpha.factors.mini1_train_loader import compute_factor_from_train\n\n    result = compute_factor_from_train(expr, name)\n\n    if os.path.exists('result.h5'):\n        os.remove('result.h5')\n    result.to_hdf('result.h5', key='data')\n\nif __name__ == '__main__':\n    # Input factor expression. Do NOT use the variable format like \"df['$xxx']\" in factor expressions. Instead, you should use \"$xxx\". \n    expr = \"RANK((TS_PCTCHANGE($close, 5) - TS_PCTCHANGE($close, 20)) / (TS_STD(TS_PCTCHANGE($close, 1), 20) + 1e-8))\" # Your output factor expression will be filled in here\n    name = \"ShortLongRetDiff_VolNorm_Rank\" # Your output factor name will be filled in here\n    calculate_factor(expr, name)",
+      "factor_description": "Cross-sectional rank of the difference between 5-day and 20-day closing price percentage changes, normalized by the 20-day standard deviation of daily returns. Captures the interplay of short-term momentum and long-term mean-reversion as a normalized signal.",
+      "factor_formulation": "\\text{RANK}\\left(\\frac{\\text{TS_PCTCHANGE}(\\text{close}, 5) - \\text{TS_PCTCHANGE}(\\text{close}, 20)}{\\text{TS_STD}(\\text{return}, 20) + 1e-8}\\right)",
+      "cache_location": {
+        "workspace_suffix": "",
+        "workspace_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace",
+        "factor_dir": "4336733f92e741a794d94d353a698d39",
+        "result_h5_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace/4336733f92e741a794d94d353a698d39/result.h5"
+      },
+      "metadata": {
+        "experiment_id": "2026-05-18_08-39-31-349821",
+        "round_number": 0,
+        "evolution_phase": "original",
+        "trajectory_id": "a49af8078d9b",
+        "parent_trajectory_ids": [],
+        "hypothesis": "Hypothesis: A daily cross-sectional factor combining short-term momentum (5-day return) and long-term mean-reversion (negative 20-day return) signals, normalized by 20-day volatility, can predict next-day stock returns.\n                Concise Observation: Daily stock data often displays positive short-horizon autocorrelation and negative long-horizon autocorrelation, suggesting concurrent momentum and mean-reversion patterns across different timescales.\n                Concise Justification: Behavioral biases lead to initial underreaction to information (short-term momentum) followed by subsequent overreaction correction (long-term mean-reversion); a cross-sectional factor leveraging both horizons can identify mispricing.\n                Concise Knowledge: If short-term returns (e.g., 5-day) exhibit momentum while long-term returns (e.g., 20-day) exhibit mean-reversion, then a composite signal subtracting long-term from short-term return captures both effects; when the composite is positive, it suggests ongoing momentum not yet overextended, while a negative composite indicates potential reversal.\n                concise Specification: Factor = (close / close.shift(5) - 1) - (close / close.shift(20) - 1) / (20-day rolling standard deviation of daily returns); computed daily per stock using closing prices; requires at least 20 days of history.\n                ",
+        "initial_direction": "Multi-scale momentum and mean-reversion: Engineer features combining time-series momentum signals across multiple horizons (1-min, 5-min, 15-min) to exploit short-term trends and reversals concurrently.",
+        "planning_direction": "Multi-scale momentum and mean-reversion: Engineer features combining time-series momentum signals across multiple horizons (1-min, 5-min, 15-min) to exploit short-term trends and reversals concurrently.",
+        "created_at": "2026-05-18T23:27:07.452771"
+      },
+      "backtest_results": {
+        "Rank IC": 0.01628397,
+        "1day.excess_return_with_cost.annualized_return": 0.10471422,
+        "IC": 0.01588159,
+        "1day.excess_return_with_cost.information_ratio": 0.61219353,
+        "1day.excess_return_without_cost.information_ratio": 1.13798599,
+        "1day.pos": 0.0,
+        "1day.excess_return_with_cost.max_drawdown": -0.03951334,
+        "ICIR": 0.07798736,
+        "1day.excess_return_without_cost.mean": 0.00081847,
+        "1day.ffr": 1.0,
+        "Rank ICIR": 0.08229639,
+        "1day.excess_return_without_cost.max_drawdown": -0.03834809,
+        "1day.pa": 0.0,
+        "1day.excess_return_without_cost.annualized_return": 0.19479699,
+        "1day.excess_return_with_cost.mean": 0.00043998,
+        "1day.excess_return_with_cost.std": 0.01108737,
+        "1day.excess_return_without_cost.std": 0.01109575
+      },
+      "feedback": {
+        "observations": "The combined result from three factor variants (ShortLongRetDiff_VolNorm_Rank, MACD_VolNorm_Rank, ShortLongRetDiff_ATRNorm_Rank) yields an annualized excess return of 19.48%, an information ratio of 1.14, a low max drawdown of -3.83%, and an IC of 1.59%. These metrics indicate moderate predictive power and support the hypothesis that a normalized combination of short-term momentum and long-term mean-reversion can predict next-day returns. No SOTA baseline was provided for comparison, so relative improvement cannot be assessed.",
+        "hypothesis_evaluation": "The hypothesis is strongly supported, as all implemented factors directly encode the interplay between 5-day momentum and 20-day mean-reversion, normalized by volatility. The positive IC and robust risk-adjusted returns confirm the framework's viability. The use of multiple normalization variants (return volatility, ATR) appears to add robustness. Future iterations could further explore alternative window lengths, weighting schemes, or non-linear combinations to enhance signal strength.",
+        "decision": true,
+        "reason": "The current 5/20 window may not be optimal for all market regimes. Testing different short/long windows can identify more persistent signals. Exponential weighting of volatility prizes recent information and may reduce noise, potentially improving IR and IC. This direction stays within the same theoretical framework while seeking parameter improvements.",
+        "new_hypothesis": "Refining the window pair (e.g., 3/10 or 10/30) and using an exponentially weighted volatility normalization will yield a more adaptive factor that captures the momentum–mean-reversion dynamic with better stability and higher predictive power."
+      }
+    },
+    "12985df8fc6bbbc9": {
+      "factor_id": "12985df8fc6bbbc9",
+      "factor_name": "MACD_VolNorm_Rank",
+      "factor_expression": "RANK(MACD($close, 5, 20) / (TS_STD($return, 20) + 1e-8))",
+      "factor_implementation_code": "File: factor.py\n\n\nimport pandas as pd\nimport numpy as np\nimport os\nfrom quantaalpha.factors.coder.expr_parser import parse_expression, parse_symbol\nfrom quantaalpha.factors.coder.function_lib import *\n\n\ndef calculate_factor(expr: str, name: str):\n    from quantaalpha.factors.mini1_train_loader import compute_factor_from_train\n\n    result = compute_factor_from_train(expr, name)\n\n    if os.path.exists('result.h5'):\n        os.remove('result.h5')\n    result.to_hdf('result.h5', key='data')\n\nif __name__ == '__main__':\n    # Input factor expression. Do NOT use the variable format like \"df['$xxx']\" in factor expressions. Instead, you should use \"$xxx\". \n    expr = \"RANK(MACD($close, 5, 20) / (TS_STD(TS_PCTCHANGE($close, 1), 20) + 1e-8))\" # Your output factor expression will be filled in here\n    name = \"MACD_VolNorm_Rank\" # Your output factor name will be filled in here\n    calculate_factor(expr, name)",
+      "factor_description": "Cross-sectional rank of the MACD(5,20) indicator divided by the 20-day return volatility. MACD measures the difference between short- and long-period exponential moving averages, aligning with short-term momentum versus longer-term mean-reversion tendencies.",
+      "factor_formulation": "\\text{RANK}\\left(\\frac{\\text{MACD}(\\text{close}, 5, 20)}{\\text{TS_STD}(\\text{return}, 20) + 1e-8}\\right)",
+      "cache_location": {
+        "workspace_suffix": "",
+        "workspace_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace",
+        "factor_dir": "d8f0cf58acb9450b92446893112c6872",
+        "result_h5_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace/d8f0cf58acb9450b92446893112c6872/result.h5"
+      },
+      "metadata": {
+        "experiment_id": "2026-05-18_08-39-31-349821",
+        "round_number": 0,
+        "evolution_phase": "original",
+        "trajectory_id": "a49af8078d9b",
+        "parent_trajectory_ids": [],
+        "hypothesis": "Hypothesis: A daily cross-sectional factor combining short-term momentum (5-day return) and long-term mean-reversion (negative 20-day return) signals, normalized by 20-day volatility, can predict next-day stock returns.\n                Concise Observation: Daily stock data often displays positive short-horizon autocorrelation and negative long-horizon autocorrelation, suggesting concurrent momentum and mean-reversion patterns across different timescales.\n                Concise Justification: Behavioral biases lead to initial underreaction to information (short-term momentum) followed by subsequent overreaction correction (long-term mean-reversion); a cross-sectional factor leveraging both horizons can identify mispricing.\n                Concise Knowledge: If short-term returns (e.g., 5-day) exhibit momentum while long-term returns (e.g., 20-day) exhibit mean-reversion, then a composite signal subtracting long-term from short-term return captures both effects; when the composite is positive, it suggests ongoing momentum not yet overextended, while a negative composite indicates potential reversal.\n                concise Specification: Factor = (close / close.shift(5) - 1) - (close / close.shift(20) - 1) / (20-day rolling standard deviation of daily returns); computed daily per stock using closing prices; requires at least 20 days of history.\n                ",
+        "initial_direction": "Multi-scale momentum and mean-reversion: Engineer features combining time-series momentum signals across multiple horizons (1-min, 5-min, 15-min) to exploit short-term trends and reversals concurrently.",
+        "planning_direction": "Multi-scale momentum and mean-reversion: Engineer features combining time-series momentum signals across multiple horizons (1-min, 5-min, 15-min) to exploit short-term trends and reversals concurrently.",
+        "created_at": "2026-05-18T23:27:13.012835"
+      },
+      "backtest_results": {
+        "Rank IC": 0.01628397,
+        "1day.excess_return_with_cost.annualized_return": 0.10471422,
+        "IC": 0.01588159,
+        "1day.excess_return_with_cost.information_ratio": 0.61219353,
+        "1day.excess_return_without_cost.information_ratio": 1.13798599,
+        "1day.pos": 0.0,
+        "1day.excess_return_with_cost.max_drawdown": -0.03951334,
+        "ICIR": 0.07798736,
+        "1day.excess_return_without_cost.mean": 0.00081847,
+        "1day.ffr": 1.0,
+        "Rank ICIR": 0.08229639,
+        "1day.excess_return_without_cost.max_drawdown": -0.03834809,
+        "1day.pa": 0.0,
+        "1day.excess_return_without_cost.annualized_return": 0.19479699,
+        "1day.excess_return_with_cost.mean": 0.00043998,
+        "1day.excess_return_with_cost.std": 0.01108737,
+        "1day.excess_return_without_cost.std": 0.01109575
+      },
+      "feedback": {
+        "observations": "The combined result from three factor variants (ShortLongRetDiff_VolNorm_Rank, MACD_VolNorm_Rank, ShortLongRetDiff_ATRNorm_Rank) yields an annualized excess return of 19.48%, an information ratio of 1.14, a low max drawdown of -3.83%, and an IC of 1.59%. These metrics indicate moderate predictive power and support the hypothesis that a normalized combination of short-term momentum and long-term mean-reversion can predict next-day returns. No SOTA baseline was provided for comparison, so relative improvement cannot be assessed.",
+        "hypothesis_evaluation": "The hypothesis is strongly supported, as all implemented factors directly encode the interplay between 5-day momentum and 20-day mean-reversion, normalized by volatility. The positive IC and robust risk-adjusted returns confirm the framework's viability. The use of multiple normalization variants (return volatility, ATR) appears to add robustness. Future iterations could further explore alternative window lengths, weighting schemes, or non-linear combinations to enhance signal strength.",
+        "decision": true,
+        "reason": "The current 5/20 window may not be optimal for all market regimes. Testing different short/long windows can identify more persistent signals. Exponential weighting of volatility prizes recent information and may reduce noise, potentially improving IR and IC. This direction stays within the same theoretical framework while seeking parameter improvements.",
+        "new_hypothesis": "Refining the window pair (e.g., 3/10 or 10/30) and using an exponentially weighted volatility normalization will yield a more adaptive factor that captures the momentum–mean-reversion dynamic with better stability and higher predictive power."
+      }
+    },
+    "5adef40b87671b63": {
+      "factor_id": "5adef40b87671b63",
+      "factor_name": "ShortLongRetDiff_ATRNorm_Rank",
+      "factor_expression": "RANK((TS_PCTCHANGE($close, 5) - TS_PCTCHANGE($close, 20)) / (TS_MEAN($high - $low, 20) + 1e-8))",
+      "factor_implementation_code": "File: factor.py\n\n\nimport pandas as pd\nimport numpy as np\nimport os\nfrom quantaalpha.factors.coder.expr_parser import parse_expression, parse_symbol\nfrom quantaalpha.factors.coder.function_lib import *\n\n\ndef calculate_factor(expr: str, name: str):\n    from quantaalpha.factors.mini1_train_loader import compute_factor_from_train\n\n    result = compute_factor_from_train(expr, name)\n\n    if os.path.exists('result.h5'):\n        os.remove('result.h5')\n    result.to_hdf('result.h5', key='data')\n\nif __name__ == '__main__':\n    # Input factor expression. Do NOT use the variable format like \"df['$xxx']\" in factor expressions. Instead, you should use \"$xxx\". \n    expr = \"RANK((TS_PCTCHANGE($close, 5) - TS_PCTCHANGE($close, 20)) / (TS_MEAN($high - $low, 20) + 1e-8))\" # Your output factor expression will be filled in here\n    name = \"ShortLongRetDiff_ATRNorm_Rank\" # Your output factor name will be filled in here\n    calculate_factor(expr, name)",
+      "factor_description": "Cross-sectional rank of the 5-day minus 20-day closing price percentage changes, normalized by the 20-day average true range ($high - $low). Uses price range as an alternative volatility proxy to capture the momentum-mean-reversion composite.",
+      "factor_formulation": "\\text{RANK}\\left(\\frac{\\text{TS_PCTCHANGE}(\\text{close}, 5) - \\text{TS_PCTCHANGE}(\\text{close}, 20)}{\\text{TS_MEAN}(\\text{high} - \\text{low}, 20) + 1e-8}\\right)",
+      "cache_location": {
+        "workspace_suffix": "",
+        "workspace_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace",
+        "factor_dir": "e40f664e15454333bb3756302f119da4",
+        "result_h5_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace/e40f664e15454333bb3756302f119da4/result.h5"
+      },
+      "metadata": {
+        "experiment_id": "2026-05-18_08-39-31-349821",
+        "round_number": 0,
+        "evolution_phase": "original",
+        "trajectory_id": "a49af8078d9b",
+        "parent_trajectory_ids": [],
+        "hypothesis": "Hypothesis: A daily cross-sectional factor combining short-term momentum (5-day return) and long-term mean-reversion (negative 20-day return) signals, normalized by 20-day volatility, can predict next-day stock returns.\n                Concise Observation: Daily stock data often displays positive short-horizon autocorrelation and negative long-horizon autocorrelation, suggesting concurrent momentum and mean-reversion patterns across different timescales.\n                Concise Justification: Behavioral biases lead to initial underreaction to information (short-term momentum) followed by subsequent overreaction correction (long-term mean-reversion); a cross-sectional factor leveraging both horizons can identify mispricing.\n                Concise Knowledge: If short-term returns (e.g., 5-day) exhibit momentum while long-term returns (e.g., 20-day) exhibit mean-reversion, then a composite signal subtracting long-term from short-term return captures both effects; when the composite is positive, it suggests ongoing momentum not yet overextended, while a negative composite indicates potential reversal.\n                concise Specification: Factor = (close / close.shift(5) - 1) - (close / close.shift(20) - 1) / (20-day rolling standard deviation of daily returns); computed daily per stock using closing prices; requires at least 20 days of history.\n                ",
+        "initial_direction": "Multi-scale momentum and mean-reversion: Engineer features combining time-series momentum signals across multiple horizons (1-min, 5-min, 15-min) to exploit short-term trends and reversals concurrently.",
+        "planning_direction": "Multi-scale momentum and mean-reversion: Engineer features combining time-series momentum signals across multiple horizons (1-min, 5-min, 15-min) to exploit short-term trends and reversals concurrently.",
+        "created_at": "2026-05-18T23:27:21.101196"
+      },
+      "backtest_results": {
+        "Rank IC": 0.01628397,
+        "1day.excess_return_with_cost.annualized_return": 0.10471422,
+        "IC": 0.01588159,
+        "1day.excess_return_with_cost.information_ratio": 0.61219353,
+        "1day.excess_return_without_cost.information_ratio": 1.13798599,
+        "1day.pos": 0.0,
+        "1day.excess_return_with_cost.max_drawdown": -0.03951334,
+        "ICIR": 0.07798736,
+        "1day.excess_return_without_cost.mean": 0.00081847,
+        "1day.ffr": 1.0,
+        "Rank ICIR": 0.08229639,
+        "1day.excess_return_without_cost.max_drawdown": -0.03834809,
+        "1day.pa": 0.0,
+        "1day.excess_return_without_cost.annualized_return": 0.19479699,
+        "1day.excess_return_with_cost.mean": 0.00043998,
+        "1day.excess_return_with_cost.std": 0.01108737,
+        "1day.excess_return_without_cost.std": 0.01109575
+      },
+      "feedback": {
+        "observations": "The combined result from three factor variants (ShortLongRetDiff_VolNorm_Rank, MACD_VolNorm_Rank, ShortLongRetDiff_ATRNorm_Rank) yields an annualized excess return of 19.48%, an information ratio of 1.14, a low max drawdown of -3.83%, and an IC of 1.59%. These metrics indicate moderate predictive power and support the hypothesis that a normalized combination of short-term momentum and long-term mean-reversion can predict next-day returns. No SOTA baseline was provided for comparison, so relative improvement cannot be assessed.",
+        "hypothesis_evaluation": "The hypothesis is strongly supported, as all implemented factors directly encode the interplay between 5-day momentum and 20-day mean-reversion, normalized by volatility. The positive IC and robust risk-adjusted returns confirm the framework's viability. The use of multiple normalization variants (return volatility, ATR) appears to add robustness. Future iterations could further explore alternative window lengths, weighting schemes, or non-linear combinations to enhance signal strength.",
+        "decision": true,
+        "reason": "The current 5/20 window may not be optimal for all market regimes. Testing different short/long windows can identify more persistent signals. Exponential weighting of volatility prizes recent information and may reduce noise, potentially improving IR and IC. This direction stays within the same theoretical framework while seeking parameter improvements.",
+        "new_hypothesis": "Refining the window pair (e.g., 3/10 or 10/30) and using an exponentially weighted volatility normalization will yield a more adaptive factor that captures the momentum–mean-reversion dynamic with better stability and higher predictive power."
+      }
+    },
+    "d78910da4c100cc3": {
+      "factor_id": "d78910da4c100cc3",
+      "factor_name": "MultiScale_MR_5_20",
+      "factor_expression": "ZSCORE(-$return + TS_PCTCHANGE($close,5) + TS_PCTCHANGE($close,20))",
+      "factor_implementation_code": "File: factor.py\n\n\nimport pandas as pd\nimport numpy as np\nimport os\nfrom quantaalpha.factors.coder.expr_parser import parse_expression, parse_symbol\nfrom quantaalpha.factors.coder.function_lib import *\n\n\ndef calculate_factor(expr: str, name: str):\n    from quantaalpha.factors.mini1_train_loader import compute_factor_from_train\n\n    result = compute_factor_from_train(expr, name)\n\n    if os.path.exists('result.h5'):\n        os.remove('result.h5')\n    result.to_hdf('result.h5', key='data')\n\nif __name__ == '__main__':\n    # Input factor expression. Do NOT use the variable format like \"df['$xxx']\" in factor expressions. Instead, you should use \"$xxx\". \n    expr = \"ZSCORE(-TS_PCTCHANGE($close,1) + TS_PCTCHANGE($close,5) + TS_PCTCHANGE($close,20))\" # Your output factor expression will be filled in here\n    name = \"MultiScale_MR_5_20\" # Your output factor name will be filled in here\n    calculate_factor(expr, name)",
+      "factor_description": "Multi-scale momentum-reversal factor combining 1-day reversal and 5-day, 20-day momentum. Computed as the cross-sectional z-score of the sum of negative daily return, 5-day cumulative return, and 20-day cumulative return.",
+      "factor_formulation": "\\text{MRS}_{5,20} = Z\\left( -r_{t} + R_{5d} + R_{20d} \\right)",
+      "cache_location": {
+        "workspace_suffix": "",
+        "workspace_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace",
+        "factor_dir": "da76dbe86b5e42b3bd11c419eb87d474",
+        "result_h5_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace/da76dbe86b5e42b3bd11c419eb87d474/result.h5"
+      },
+      "metadata": {
+        "experiment_id": "2026-05-18_08-39-31-349821",
+        "round_number": 0,
+        "evolution_phase": "original",
+        "trajectory_id": "cd7a4245771c",
+        "parent_trajectory_ids": [],
+        "hypothesis": "Hypothesis: A multi-scale momentum-reversal composite factor that combines short-term reversal (1-day return) and medium-term momentum (5-day and 20-day returns) will have predictive power for next-day returns, as it captures opposing behavioral biases across horizons.\n                Concise Observation: First round: no prior empirical feedback; daily stock returns often show negative autocorrelation at 1-day lag and positive autocorrelation at 5-20 day lags.\n                Concise Justification: Behavioral finance theories suggest that investors overreact to recent information causing reversals, while underreacting to longer-term trends causing momentum; combining these signals can capture both anomalies simultaneously.\n                Concise Knowledge: If short-term returns exhibit reversal due to overreaction and medium-term returns exhibit momentum due to underreaction, then a composite signal that buys assets with negative recent 1-day returns and positive 5-day and 20-day returns will outperform.\n                concise Specification: Define the factor as the cross-sectional z-score of ( -1 * r_1d + r_5d + r_20d ), where r_1d is the previous day's return, r_5d is the 5-day cumulative return, and r_20d is the 20-day cumulative return, all computed from daily close prices; reshape to long format with MultiIndex (datetime, instrument).\n                ",
+        "initial_direction": "Multi-scale momentum and mean-reversion: Engineer features combining time-series momentum signals across multiple horizons (1-min, 5-min, 15-min) to exploit short-term trends and reversals concurrently.",
+        "planning_direction": "Multi-scale momentum and mean-reversion: Engineer features combining time-series momentum signals across multiple horizons (1-min, 5-min, 15-min) to exploit short-term trends and reversals concurrently.",
+        "created_at": "2026-05-19T01:00:00.518369"
+      },
+      "backtest_results": {
+        "Rank IC": 0.01628397,
+        "1day.excess_return_with_cost.annualized_return": 0.10471422,
+        "IC": 0.01588159,
+        "1day.excess_return_with_cost.information_ratio": 0.61219353,
+        "1day.excess_return_without_cost.information_ratio": 1.13798599,
+        "1day.pos": 0.0,
+        "1day.excess_return_with_cost.max_drawdown": -0.03951334,
+        "ICIR": 0.07798736,
+        "1day.excess_return_without_cost.mean": 0.00081847,
+        "1day.ffr": 1.0,
+        "Rank ICIR": 0.08229639,
+        "1day.excess_return_without_cost.max_drawdown": -0.03834809,
+        "1day.pa": 0.0,
+        "1day.excess_return_without_cost.annualized_return": 0.19479699,
+        "1day.excess_return_with_cost.mean": 0.00043998,
+        "1day.excess_return_with_cost.std": 0.01108737,
+        "1day.excess_return_without_cost.std": 0.01109575
+      },
+      "feedback": {
+        "observations": "The multi-scale momentum-reversal factors achieved an annualized return of 0.195, an information ratio of 1.138, a max drawdown of -0.038, and an IC of 0.016. These metrics indicate moderate predictive power and low risk. The factors are simple (low complexity) and thus likely robust against overfitting. The hypothesis is supported by the positive IC and good IR.",
+        "hypothesis_evaluation": "The results support the hypothesis that combining short-term reversal with medium-term momentum provides a predictive signal for next-day returns. The positive IC and reasonable IR suggest the factor captures opposing behavioral biases. However, the equal-weighting scheme may leave room for improvement, and the factor could benefit from refinements such as dynamic weighting or volatility adjustment.",
+        "decision": true,
+        "reason": "The simple sum of returns does not account for the different variance of each component. Volatility-adjusting each component and introducing a decay factor for momentum can enhance the signal-to-noise ratio. Additionally, using rank-based normalization before combination may further reduce outlier influence and improve robustness.",
+        "new_hypothesis": "A refined multi-scale momentum-reversal factor that employs exponentially-weighted moving averages of past returns and applies volatility scaling will improve predictive power by better balancing signal strength and stability."
+      }
+    },
+    "0b5199a07629e6c0": {
+      "factor_id": "0b5199a07629e6c0",
+      "factor_name": "MultiScale_MR_Rank_5_20",
+      "factor_expression": "RANK(-$return + TS_PCTCHANGE($close,5) + TS_PCTCHANGE($close,20))",
+      "factor_implementation_code": "File: factor.py\n\n\nimport pandas as pd\nimport numpy as np\nimport os\nfrom quantaalpha.factors.coder.expr_parser import parse_expression, parse_symbol\nfrom quantaalpha.factors.coder.function_lib import *\n\n\ndef calculate_factor(expr: str, name: str):\n    from quantaalpha.factors.mini1_train_loader import compute_factor_from_train\n\n    result = compute_factor_from_train(expr, name)\n\n    if os.path.exists('result.h5'):\n        os.remove('result.h5')\n    result.to_hdf('result.h5', key='data')\n\nif __name__ == '__main__':\n    # Input factor expression. Do NOT use the variable format like \"df['$xxx']\" in factor expressions. Instead, you should use \"$xxx\". \n    expr = \"RANK(-TS_PCTCHANGE($close,1) + TS_PCTCHANGE($close,5) + TS_PCTCHANGE($close,20))\" # Your output factor expression will be filled in here\n    name = \"MultiScale_MR_Rank_5_20\" # Your output factor name will be filled in here\n    calculate_factor(expr, name)",
+      "factor_description": "Multi-scale momentum-reversal factor similar to MRS_5_20 but using cross-sectional rank instead of z-score for robustness to outliers.",
+      "factor_formulation": "\\text{MRS}_{5,20}^{\\text{rank}} = \\text{RANK}\\left( -r_{t} + R_{5d} + R_{20d} \\right)",
+      "cache_location": {
+        "workspace_suffix": "",
+        "workspace_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace",
+        "factor_dir": "4d6034045fb74cfa95160e7ca4a88aa0",
+        "result_h5_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace/4d6034045fb74cfa95160e7ca4a88aa0/result.h5"
+      },
+      "metadata": {
+        "experiment_id": "2026-05-18_08-39-31-349821",
+        "round_number": 0,
+        "evolution_phase": "original",
+        "trajectory_id": "cd7a4245771c",
+        "parent_trajectory_ids": [],
+        "hypothesis": "Hypothesis: A multi-scale momentum-reversal composite factor that combines short-term reversal (1-day return) and medium-term momentum (5-day and 20-day returns) will have predictive power for next-day returns, as it captures opposing behavioral biases across horizons.\n                Concise Observation: First round: no prior empirical feedback; daily stock returns often show negative autocorrelation at 1-day lag and positive autocorrelation at 5-20 day lags.\n                Concise Justification: Behavioral finance theories suggest that investors overreact to recent information causing reversals, while underreacting to longer-term trends causing momentum; combining these signals can capture both anomalies simultaneously.\n                Concise Knowledge: If short-term returns exhibit reversal due to overreaction and medium-term returns exhibit momentum due to underreaction, then a composite signal that buys assets with negative recent 1-day returns and positive 5-day and 20-day returns will outperform.\n                concise Specification: Define the factor as the cross-sectional z-score of ( -1 * r_1d + r_5d + r_20d ), where r_1d is the previous day's return, r_5d is the 5-day cumulative return, and r_20d is the 20-day cumulative return, all computed from daily close prices; reshape to long format with MultiIndex (datetime, instrument).\n                ",
+        "initial_direction": "Multi-scale momentum and mean-reversion: Engineer features combining time-series momentum signals across multiple horizons (1-min, 5-min, 15-min) to exploit short-term trends and reversals concurrently.",
+        "planning_direction": "Multi-scale momentum and mean-reversion: Engineer features combining time-series momentum signals across multiple horizons (1-min, 5-min, 15-min) to exploit short-term trends and reversals concurrently.",
+        "created_at": "2026-05-19T01:00:06.553995"
+      },
+      "backtest_results": {
+        "Rank IC": 0.01628397,
+        "1day.excess_return_with_cost.annualized_return": 0.10471422,
+        "IC": 0.01588159,
+        "1day.excess_return_with_cost.information_ratio": 0.61219353,
+        "1day.excess_return_without_cost.information_ratio": 1.13798599,
+        "1day.pos": 0.0,
+        "1day.excess_return_with_cost.max_drawdown": -0.03951334,
+        "ICIR": 0.07798736,
+        "1day.excess_return_without_cost.mean": 0.00081847,
+        "1day.ffr": 1.0,
+        "Rank ICIR": 0.08229639,
+        "1day.excess_return_without_cost.max_drawdown": -0.03834809,
+        "1day.pa": 0.0,
+        "1day.excess_return_without_cost.annualized_return": 0.19479699,
+        "1day.excess_return_with_cost.mean": 0.00043998,
+        "1day.excess_return_with_cost.std": 0.01108737,
+        "1day.excess_return_without_cost.std": 0.01109575
+      },
+      "feedback": {
+        "observations": "The multi-scale momentum-reversal factors achieved an annualized return of 0.195, an information ratio of 1.138, a max drawdown of -0.038, and an IC of 0.016. These metrics indicate moderate predictive power and low risk. The factors are simple (low complexity) and thus likely robust against overfitting. The hypothesis is supported by the positive IC and good IR.",
+        "hypothesis_evaluation": "The results support the hypothesis that combining short-term reversal with medium-term momentum provides a predictive signal for next-day returns. The positive IC and reasonable IR suggest the factor captures opposing behavioral biases. However, the equal-weighting scheme may leave room for improvement, and the factor could benefit from refinements such as dynamic weighting or volatility adjustment.",
+        "decision": true,
+        "reason": "The simple sum of returns does not account for the different variance of each component. Volatility-adjusting each component and introducing a decay factor for momentum can enhance the signal-to-noise ratio. Additionally, using rank-based normalization before combination may further reduce outlier influence and improve robustness.",
+        "new_hypothesis": "A refined multi-scale momentum-reversal factor that employs exponentially-weighted moving averages of past returns and applies volatility scaling will improve predictive power by better balancing signal strength and stability."
+      }
+    },
+    "7363f2833202f552": {
+      "factor_id": "7363f2833202f552",
+      "factor_name": "MultiScale_MR_10_40",
+      "factor_expression": "ZSCORE(-$return + TS_PCTCHANGE($close,10) + TS_PCTCHANGE($close,40))",
+      "factor_implementation_code": "File: factor.py\n\n\nimport pandas as pd\nimport numpy as np\nimport os\nfrom quantaalpha.factors.coder.expr_parser import parse_expression, parse_symbol\nfrom quantaalpha.factors.coder.function_lib import *\n\n\ndef calculate_factor(expr: str, name: str):\n    from quantaalpha.factors.mini1_train_loader import compute_factor_from_train\n\n    result = compute_factor_from_train(expr, name)\n\n    if os.path.exists('result.h5'):\n        os.remove('result.h5')\n    result.to_hdf('result.h5', key='data')\n\nif __name__ == '__main__':\n    # Input factor expression. Do NOT use the variable format like \"df['$xxx']\" in factor expressions. Instead, you should use \"$xxx\". \n    expr = \"ZSCORE(TS_PCTCHANGE($close,10) + TS_PCTCHANGE($close,40) - TS_PCTCHANGE($close,1))\" # Your output factor expression will be filled in here\n    name = \"MultiScale_MR_10_40\" # Your output factor name will be filled in here\n    calculate_factor(expr, name)",
+      "factor_description": "Multi-scale momentum-reversal factor with extended horizons: 1-day reversal, 10-day and 40-day momentum, capturing longer-term trends.",
+      "factor_formulation": "\\text{MRS}_{10,40} = Z\\left( -r_{t} + R_{10d} + R_{40d} \\right)",
+      "cache_location": {
+        "workspace_suffix": "",
+        "workspace_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace",
+        "factor_dir": "f5981b8e18f347df9f12125bd4f63d5f",
+        "result_h5_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace/f5981b8e18f347df9f12125bd4f63d5f/result.h5"
+      },
+      "metadata": {
+        "experiment_id": "2026-05-18_08-39-31-349821",
+        "round_number": 0,
+        "evolution_phase": "original",
+        "trajectory_id": "cd7a4245771c",
+        "parent_trajectory_ids": [],
+        "hypothesis": "Hypothesis: A multi-scale momentum-reversal composite factor that combines short-term reversal (1-day return) and medium-term momentum (5-day and 20-day returns) will have predictive power for next-day returns, as it captures opposing behavioral biases across horizons.\n                Concise Observation: First round: no prior empirical feedback; daily stock returns often show negative autocorrelation at 1-day lag and positive autocorrelation at 5-20 day lags.\n                Concise Justification: Behavioral finance theories suggest that investors overreact to recent information causing reversals, while underreacting to longer-term trends causing momentum; combining these signals can capture both anomalies simultaneously.\n                Concise Knowledge: If short-term returns exhibit reversal due to overreaction and medium-term returns exhibit momentum due to underreaction, then a composite signal that buys assets with negative recent 1-day returns and positive 5-day and 20-day returns will outperform.\n                concise Specification: Define the factor as the cross-sectional z-score of ( -1 * r_1d + r_5d + r_20d ), where r_1d is the previous day's return, r_5d is the 5-day cumulative return, and r_20d is the 20-day cumulative return, all computed from daily close prices; reshape to long format with MultiIndex (datetime, instrument).\n                ",
+        "initial_direction": "Multi-scale momentum and mean-reversion: Engineer features combining time-series momentum signals across multiple horizons (1-min, 5-min, 15-min) to exploit short-term trends and reversals concurrently.",
+        "planning_direction": "Multi-scale momentum and mean-reversion: Engineer features combining time-series momentum signals across multiple horizons (1-min, 5-min, 15-min) to exploit short-term trends and reversals concurrently.",
+        "created_at": "2026-05-19T01:00:16.412561"
+      },
+      "backtest_results": {
+        "Rank IC": 0.01628397,
+        "1day.excess_return_with_cost.annualized_return": 0.10471422,
+        "IC": 0.01588159,
+        "1day.excess_return_with_cost.information_ratio": 0.61219353,
+        "1day.excess_return_without_cost.information_ratio": 1.13798599,
+        "1day.pos": 0.0,
+        "1day.excess_return_with_cost.max_drawdown": -0.03951334,
+        "ICIR": 0.07798736,
+        "1day.excess_return_without_cost.mean": 0.00081847,
+        "1day.ffr": 1.0,
+        "Rank ICIR": 0.08229639,
+        "1day.excess_return_without_cost.max_drawdown": -0.03834809,
+        "1day.pa": 0.0,
+        "1day.excess_return_without_cost.annualized_return": 0.19479699,
+        "1day.excess_return_with_cost.mean": 0.00043998,
+        "1day.excess_return_with_cost.std": 0.01108737,
+        "1day.excess_return_without_cost.std": 0.01109575
+      },
+      "feedback": {
+        "observations": "The multi-scale momentum-reversal factors achieved an annualized return of 0.195, an information ratio of 1.138, a max drawdown of -0.038, and an IC of 0.016. These metrics indicate moderate predictive power and low risk. The factors are simple (low complexity) and thus likely robust against overfitting. The hypothesis is supported by the positive IC and good IR.",
+        "hypothesis_evaluation": "The results support the hypothesis that combining short-term reversal with medium-term momentum provides a predictive signal for next-day returns. The positive IC and reasonable IR suggest the factor captures opposing behavioral biases. However, the equal-weighting scheme may leave room for improvement, and the factor could benefit from refinements such as dynamic weighting or volatility adjustment.",
+        "decision": true,
+        "reason": "The simple sum of returns does not account for the different variance of each component. Volatility-adjusting each component and introducing a decay factor for momentum can enhance the signal-to-noise ratio. Additionally, using rank-based normalization before combination may further reduce outlier influence and improve robustness.",
+        "new_hypothesis": "A refined multi-scale momentum-reversal factor that employs exponentially-weighted moving averages of past returns and applies volatility scaling will improve predictive power by better balancing signal strength and stability."
+      }
+    },
+    "37fbadfeba913728": {
+      "factor_id": "37fbadfeba913728",
+      "factor_name": "EMA_ReturnVolAdj_VolumeShock_10",
+      "factor_expression": "EMA(($return / (TS_STD($return, 20) + 1e-8)) * (($volume / (TS_MEAN($volume, 50) + 1e-8)) - 1), 10)",
+      "factor_implementation_code": "File: factor.py\n\n\nimport pandas as pd\nimport numpy as np\nimport os\nfrom quantaalpha.factors.coder.expr_parser import parse_expression, parse_symbol\nfrom quantaalpha.factors.coder.function_lib import *\n\n\ndef calculate_factor(expr: str, name: str):\n    from quantaalpha.factors.mini1_train_loader import compute_factor_from_train\n\n    result = compute_factor_from_train(expr, name)\n\n    if os.path.exists('result.h5'):\n        os.remove('result.h5')\n    result.to_hdf('result.h5', key='data')\n\nif __name__ == '__main__':\n    # Input factor expression. Do NOT use the variable format like \"df['$xxx']\" in factor expressions. Instead, you should use \"$xxx\". \n    expr = \"EMA( (TS_PCTCHANGE($close, 1) / (TS_STD(TS_PCTCHANGE($close, 1), 20) + 1e-8)) * ( ($volume / (TS_MEAN($volume, 50) + 1e-8)) - 1 ), 10 )\" # Your output factor expression will be filled in here\n    name = \"EMA_ReturnVolAdj_VolumeShock_10\" # Your output factor name will be filled in here\n    calculate_factor(expr, name)",
+      "factor_description": "EMA(10) of the product of daily return normalized by 20-day return volatility and volume deviation from 50-day average volume. Captures non-linear interaction between momentum and volume surprise.",
+      "factor_formulation": "\\text{EMA}_{10}\\left(\\frac{r_t}{\\sigma_{r,20}} \\cdot \\left(\\frac{V_t}{\\bar{V}_{50}} - 1\\right)\\right)",
+      "cache_location": {
+        "workspace_suffix": "",
+        "workspace_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace",
+        "factor_dir": "847bb5a46f8e4ceba934673e8d0797c8",
+        "result_h5_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace/847bb5a46f8e4ceba934673e8d0797c8/result.h5"
+      },
+      "metadata": {
+        "experiment_id": "2026-05-18_08-39-31-349821",
+        "round_number": 0,
+        "evolution_phase": "original",
+        "trajectory_id": "a9429a40a62d",
+        "parent_trajectory_ids": [],
+        "direction_id": 2,
+        "hypothesis": "Hypothesis: A non-linear factor defined as the exponential moving average of the product of daily returns and volume shocks normalized by recent volatility will capture complex interactions and improve return prediction.\n                Concise Observation: Given only daily close and volume data, a static non-linear factor can proxy for the complex interactions that an ML model might learn from higher-frequency sequences.\n                Concise Justification: High returns with abnormal volume signal strong investor conviction, and volatility scaling adapts to market regimes; the EMA smooths noise while retaining recency.\n                Concise Knowledge: When constructing predictive factors, incorporating non-linear interactions such as the product of momentum and volume shocks normalized by volatility can encapsulate complex market dynamics that linear models miss.\n                concise Specification: Factor = EMA( (close_t/close_{t-1} - 1) / (rolling_20d_std of returns) * (volume_t / rolling_50d_mean_volume - 1) , span=10 ).\n                ",
+        "initial_direction": "Apply a non-linear machine learning framework: train a gradient boosting model (or LSTM) directly on raw 5-minute price-volume sequences and derived features (e.g., technical indicators) to let the model learn complex interactions, using mini1 as the training set.",
+        "planning_direction": "Apply a non-linear machine learning framework: train a gradient boosting model (or LSTM) directly on raw 5-minute price-volume sequences and derived features (e.g., technical indicators) to let the model learn complex interactions, using mini1 as the training set.",
+        "created_at": "2026-05-19T02:23:49.535717"
+      },
+      "backtest_results": {},
+      "feedback": {
+        "observations": "The combined result is an empty DataFrame with no columns or index, indicating that the factor computation did not produce any output. This could be caused by errors in the implementation (e.g., incorrect use of the factor DSL, missing data columns, or failure to handle NaN/infinity values). No performance metrics are available to evaluate.",
+        "hypothesis_evaluation": "The hypothesis that a non-linear EMA of return–volume interaction normalized by volatility improves return prediction could not be tested due to the empty result. The concept is theoretically sound, but implementation issues prevented verification. Debugging the factor code and ensuring the data pipeline works correctly is necessary before any judgment can be made.",
+        "decision": false,
+        "reason": "Given the empty result, the first step is to adopt a factor formulation with fewer moving parts (e.g., avoid z-score of volume which adds another standard deviation calculation). This reduces the chance of division-by-zero or missing data errors and establishes a baseline to later add complexity. Once the basic factor computes successfully, we can benchmark it and then reintroduce EMA or volume normalization.",
+        "new_hypothesis": "A simplified version of the factor—using only a 10-day simple moving average of (daily return / 20-day return std) × (volume / 50-day average volume - 1)—will be easier to implement, more robust to data irregularities, and may still capture meaningful interaction effects."
+      }
+    },
+    "246a9e2f8fabccdb": {
+      "factor_id": "246a9e2f8fabccdb",
+      "factor_name": "EMA_ReturnVolAdj_VolumeZScore_10",
+      "factor_expression": "EMA(($return / (TS_STD($return, 20) + 1e-8)) * (($volume - TS_MEAN($volume, 50)) / (TS_STD($volume, 50) + 1e-8)), 10)",
+      "factor_implementation_code": "File: factor.py\n\n\nimport pandas as pd\nimport numpy as np\nimport os\nfrom quantaalpha.factors.coder.expr_parser import parse_expression, parse_symbol\nfrom quantaalpha.factors.coder.function_lib import *\n\n\ndef calculate_factor(expr: str, name: str):\n    from quantaalpha.factors.mini1_train_loader import compute_factor_from_train\n\n    result = compute_factor_from_train(expr, name)\n\n    if os.path.exists('result.h5'):\n        os.remove('result.h5')\n    result.to_hdf('result.h5', key='data')\n\nif __name__ == '__main__':\n    # Input factor expression. Do NOT use the variable format like \"df['$xxx']\" in factor expressions. Instead, you should use \"$xxx\". \n    expr = \"EMA((TS_PCTCHANGE($close, 1) / (TS_STD(TS_PCTCHANGE($close, 1), 20) + 1e-8)) * (($volume - TS_MEAN($volume, 50)) / (TS_STD($volume, 50) + 1e-8)), 10)\" # Your output factor expression will be filled in here\n    name = \"EMA_ReturnVolAdj_VolumeZScore_10\" # Your output factor name will be filled in here\n    calculate_factor(expr, name)",
+      "factor_description": "EMA(10) of daily return divided by 20-day return volatility, multiplied by 50-day volume z-score. Normalizes volume shock relative to its own volatility.",
+      "factor_formulation": "\\text{EMA}_{10}\\left(\\frac{r_t}{\\sigma_{r,20}} \\cdot \\frac{V_t - \\bar{V}_{50}}{\\sigma_{V,50}}\\right)",
+      "cache_location": {
+        "workspace_suffix": "",
+        "workspace_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace",
+        "factor_dir": "f6d0dfef71b74d33becf8dd945053ef4",
+        "result_h5_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace/f6d0dfef71b74d33becf8dd945053ef4/result.h5"
+      },
+      "metadata": {
+        "experiment_id": "2026-05-18_08-39-31-349821",
+        "round_number": 0,
+        "evolution_phase": "original",
+        "trajectory_id": "a9429a40a62d",
+        "parent_trajectory_ids": [],
+        "direction_id": 2,
+        "hypothesis": "Hypothesis: A non-linear factor defined as the exponential moving average of the product of daily returns and volume shocks normalized by recent volatility will capture complex interactions and improve return prediction.\n                Concise Observation: Given only daily close and volume data, a static non-linear factor can proxy for the complex interactions that an ML model might learn from higher-frequency sequences.\n                Concise Justification: High returns with abnormal volume signal strong investor conviction, and volatility scaling adapts to market regimes; the EMA smooths noise while retaining recency.\n                Concise Knowledge: When constructing predictive factors, incorporating non-linear interactions such as the product of momentum and volume shocks normalized by volatility can encapsulate complex market dynamics that linear models miss.\n                concise Specification: Factor = EMA( (close_t/close_{t-1} - 1) / (rolling_20d_std of returns) * (volume_t / rolling_50d_mean_volume - 1) , span=10 ).\n                ",
+        "initial_direction": "Apply a non-linear machine learning framework: train a gradient boosting model (or LSTM) directly on raw 5-minute price-volume sequences and derived features (e.g., technical indicators) to let the model learn complex interactions, using mini1 as the training set.",
+        "planning_direction": "Apply a non-linear machine learning framework: train a gradient boosting model (or LSTM) directly on raw 5-minute price-volume sequences and derived features (e.g., technical indicators) to let the model learn complex interactions, using mini1 as the training set.",
+        "created_at": "2026-05-19T02:23:55.627459"
+      },
+      "backtest_results": {},
+      "feedback": {
+        "observations": "The combined result is an empty DataFrame with no columns or index, indicating that the factor computation did not produce any output. This could be caused by errors in the implementation (e.g., incorrect use of the factor DSL, missing data columns, or failure to handle NaN/infinity values). No performance metrics are available to evaluate.",
+        "hypothesis_evaluation": "The hypothesis that a non-linear EMA of return–volume interaction normalized by volatility improves return prediction could not be tested due to the empty result. The concept is theoretically sound, but implementation issues prevented verification. Debugging the factor code and ensuring the data pipeline works correctly is necessary before any judgment can be made.",
+        "decision": false,
+        "reason": "Given the empty result, the first step is to adopt a factor formulation with fewer moving parts (e.g., avoid z-score of volume which adds another standard deviation calculation). This reduces the chance of division-by-zero or missing data errors and establishes a baseline to later add complexity. Once the basic factor computes successfully, we can benchmark it and then reintroduce EMA or volume normalization.",
+        "new_hypothesis": "A simplified version of the factor—using only a 10-day simple moving average of (daily return / 20-day return std) × (volume / 50-day average volume - 1)—will be easier to implement, more robust to data irregularities, and may still capture meaningful interaction effects."
+      }
+    },
+    "3b06b944f5739d8b": {
+      "factor_id": "3b06b944f5739d8b",
+      "factor_name": "SMA_ReturnVolAdj_VolumeZScore_10",
+      "factor_expression": "TS_MEAN(($return / (TS_STD($return, 20) + 1e-8)) * (($volume - TS_MEAN($volume, 50)) / (TS_STD($volume, 50) + 1e-8)), 10)",
+      "factor_implementation_code": "File: factor.py\n\n\nimport pandas as pd\nimport numpy as np\nimport os\nfrom quantaalpha.factors.coder.expr_parser import parse_expression, parse_symbol\nfrom quantaalpha.factors.coder.function_lib import *\n\n\ndef calculate_factor(expr: str, name: str):\n    from quantaalpha.factors.mini1_train_loader import compute_factor_from_train\n\n    result = compute_factor_from_train(expr, name)\n\n    if os.path.exists('result.h5'):\n        os.remove('result.h5')\n    result.to_hdf('result.h5', key='data')\n\nif __name__ == '__main__':\n    # Input factor expression. Do NOT use the variable format like \"df['$xxx']\" in factor expressions. Instead, you should use \"$xxx\". \n    expr = \"TS_MEAN(($close / DELAY($close, 1) - 1) / (TS_STD(($close / DELAY($close, 1) - 1), 20) + 1e-8) * (($volume - TS_MEAN($volume, 50)) / (TS_STD($volume, 50) + 1e-8)), 10)\" # Your output factor expression will be filled in here\n    name = \"SMA_ReturnVolAdj_VolumeZScore_10\" # Your output factor name will be filled in here\n    calculate_factor(expr, name)",
+      "factor_description": "10-day simple moving average of the product of return/volatility ratio and volume z-score. Uses SMA instead of EMA to test robustness of smoothing.",
+      "factor_formulation": "\\text{SMA}_{10}\\left(\\frac{r_t}{\\sigma_{r,20}} \\cdot \\frac{V_t - \\bar{V}_{50}}{\\sigma_{V,50}}\\right)",
+      "cache_location": {
+        "workspace_suffix": "",
+        "workspace_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace",
+        "factor_dir": "a09e10eda9c34132ab2ddaaa8c5bb86d",
+        "result_h5_path": "/srv/quant/shared_data/users/chenyuanheng/rdagent_workspace/RD-Agent_workspace/a09e10eda9c34132ab2ddaaa8c5bb86d/result.h5"
+      },
+      "metadata": {
+        "experiment_id": "2026-05-18_08-39-31-349821",
+        "round_number": 0,
+        "evolution_phase": "original",
+        "trajectory_id": "a9429a40a62d",
+        "parent_trajectory_ids": [],
+        "direction_id": 2,
+        "hypothesis": "Hypothesis: A non-linear factor defined as the exponential moving average of the product of daily returns and volume shocks normalized by recent volatility will capture complex interactions and improve return prediction.\n                Concise Observation: Given only daily close and volume data, a static non-linear factor can proxy for the complex interactions that an ML model might learn from higher-frequency sequences.\n                Concise Justification: High returns with abnormal volume signal strong investor conviction, and volatility scaling adapts to market regimes; the EMA smooths noise while retaining recency.\n                Concise Knowledge: When constructing predictive factors, incorporating non-linear interactions such as the product of momentum and volume shocks normalized by volatility can encapsulate complex market dynamics that linear models miss.\n                concise Specification: Factor = EMA( (close_t/close_{t-1} - 1) / (rolling_20d_std of returns) * (volume_t / rolling_50d_mean_volume - 1) , span=10 ).\n                ",
+        "initial_direction": "Apply a non-linear machine learning framework: train a gradient boosting model (or LSTM) directly on raw 5-minute price-volume sequences and derived features (e.g., technical indicators) to let the model learn complex interactions, using mini1 as the training set.",
+        "planning_direction": "Apply a non-linear machine learning framework: train a gradient boosting model (or LSTM) directly on raw 5-minute price-volume sequences and derived features (e.g., technical indicators) to let the model learn complex interactions, using mini1 as the training set.",
+        "created_at": "2026-05-19T02:24:05.700356"
+      },
+      "backtest_results": {},
+      "feedback": {
+        "observations": "The combined result is an empty DataFrame with no columns or index, indicating that the factor computation did not produce any output. This could be caused by errors in the implementation (e.g., incorrect use of the factor DSL, missing data columns, or failure to handle NaN/infinity values). No performance metrics are available to evaluate.",
+        "hypothesis_evaluation": "The hypothesis that a non-linear EMA of return–volume interaction normalized by volatility improves return prediction could not be tested due to the empty result. The concept is theoretically sound, but implementation issues prevented verification. Debugging the factor code and ensuring the data pipeline works correctly is necessary before any judgment can be made.",
+        "decision": false,
+        "reason": "Given the empty result, the first step is to adopt a factor formulation with fewer moving parts (e.g., avoid z-score of volume which adds another standard deviation calculation). This reduces the chance of division-by-zero or missing data errors and establishes a baseline to later add complexity. Once the basic factor computes successfully, we can benchmark it and then reintroduce EMA or volume normalization.",
+        "new_hypothesis": "A simplified version of the factor—using only a 10-day simple moving average of (daily return / 20-day return std) × (volume / 50-day average volume - 1)—will be easier to implement, more robust to data irregularities, and may still capture meaningful interaction effects."
+      }
+    }
+  }
+}
