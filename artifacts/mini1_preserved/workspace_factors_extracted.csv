@@ -1,0 +1,61 @@
+factor_name,factor_expression,workspace_dir
+Volume_Reversal_Raw,"-($return) * ($volume / (TS_MEAN($volume, 20) + 1e-8))",dbed02c3d32847d9b2e44f76205ec95d
+Liquidity_Exhaustion_Indicator_3D,"TS_MEAN(ABS(DELTA($close, 1)), 3) / (TS_MEAN($volume, 3) + 1e-8)",d30db6fba1d04602af4c77f905ebf705
+Volume_Return_Corr_20D,"TS_CORR($volume / (DELAY($volume, 1) + 1e-8) - 1, $close / (DELAY($close, 1) + 1e-8) - 1, 20)",db89991966464ca4845aa5e79e8ffcce
+Volume_Return_Corr_10D,"TS_CORR(TS_PCTCHANGE($volume, 1), TS_PCTCHANGE($close, 1), 10)",87477c4149884308b2ed31e5e5bb656f
+Daily_Sentiment_Reversal_60D,"-$return * $volume / (TS_MEDIAN($volume, 60) + 1e-8)",7f26b3c2ee354ece9d1c15d76fc979a3
+Normalized_Volume_Acceleration_3D,"DELTA($volume, 1) / (TS_STD($close, 3) + 1e-8)",32f73663e877486eb351c754b5117515
+Intraday_Range_Volume_Reversal_40D,"-($high - $low)/$close * $volume / (TS_MEDIAN($volume, 40) + 1e-8)",75276b2d927348a0b9862cf03c6ac74a
+Reversal_NegRetRank_VolRank_10D,"RANK(TS_RANK($volume, 30) * TS_RANK(-1 * $return, 10))",65e8e16eaee446298f65ad22f83c323a
+Return_Deviation_Stock_Volume_ZScore_20D,"($return - MEAN($return)) * TS_ZSCORE($volume, 20)",95f6dd796a22452fac719f8753720cdc
+Volume_ZScore_Weighted_Return,"$return * TS_ZSCORE($volume, 20)",0e60fdb8eab14c30a16edca84d894a78
+Neg_Norm_Intraday_Return_Vol_Ratio_10D,"-1 * TS_ZSCORE(($close - $open) / ($open + 1e-8), 10) * ($volume / (TS_MEAN($volume, 20) + 1e-8))",749a0bf5d42a473b8b9de720c4a4b092
+Return_Deviation_Market_Volume_Accel_10D,"($return - MEAN($return)) * (MEAN($volume) / (TS_MEAN(MEAN($volume), 10) + 1e-8) - 1)",224909577f2a426dadaef20f6c35a459
+Reversal_RankProduct_20D,"- (TS_RANK($return, 20) / 20) * (TS_RANK($volume, 20) / 20)",789779e7ee484a07a73a56de6fe78d43
+Price_Volume_Convergence_Rank_7D,"RANK(TS_MEAN(DELTA($close, 1) / $close * DELTA($volume, 1), 7))",67905f21a99d4b27af59bbdfa4031dd9
+EMA_ReturnVolAdj_VolumeZScore_10,"EMA((TS_PCTCHANGE($close, 1) / (TS_STD(TS_PCTCHANGE($close, 1), 20) + 1e-8)) * (($volume - TS_MEAN($volume, 50)) / (TS_STD($volume, 50) + 1e-8)), 10)",f6d0dfef71b74d33becf8dd945053ef4
+Volume_Reversal_Rank,"RANK(-($return) * ($volume / (TS_MEAN($volume, 20) + 1e-8)))",357cc211fcd146d38913ce066066c41e
+Volume_Sentiment_Conditional_Reversal_5D,"(TS_ZSCORE(TS_SUM(($close - $open) * $volume, 390), 1560) < 0) ? (-TS_MEAN($return, 390)) : 0",c5d591b0bdc5494196793e2ac7b2775e
+Reversal_Volume_PctChange_10D,"-$return * TS_PCTCHANGE($volume, 10)",b6509b7ce7a74ca1b90dadfba903b558
+Volume_Return_Correlation_Momentum_Reversal_12_6,"-1 * TS_CORR($volume, $return, 12) * TS_SUM($return, 6)",045fbeb02b6b4c98ada7f16a6a8f20d3
+Return_Deviation_Stock_Volume_Accel_10D,"($return - MEAN($return)) * ($volume / (TS_MEAN($volume, 10) + 1e-8) - 1)",06a964c9a593483380b9860967c82f1e
+EMA_ReturnVolAdj_VolumeShock_10,"EMA( (TS_PCTCHANGE($close, 1) / (TS_STD(TS_PCTCHANGE($close, 1), 20) + 1e-8)) * ( ($volume / (TS_MEAN($volume, 50) + 1e-8)) - 1 ), 10 )",847bb5a46f8e4ceba934673e8d0797c8
+Volume_Ratio_Weighted_Return,"$return * ($volume / (TS_MEAN($volume, 20) + 1e-8))",7248cbbeb2354d80af8a28aa6761e72b
+Overnight_Gap_Volume_ZScore_Reversal_20D,"ZSCORE(- (($open / (DELAY($close, 1) + 1e-8)) - 1) * ($volume / (TS_MEAN($volume, 20) + 1e-8)))",8d4265d7c9204e6db7853616f8cbd401
+Volume_Return_Correlation_Reversal_10D,"(-TS_MEAN($return, 5)) * (1 - TS_CORR($return, $volume, 10))",a29da3668d31459eaa783412b50baed4
+VolumeWeighted_IntradayImbalance_10D,"RANK(TS_SUM($volume * ($close - $open), 10) / (TS_SUM($volume, 10) + 1e-8))",122d88165ae04dedae75c6d8ca936a40
+Volume_Return_Sign_Align_20D,"(COUNT($volume > DELAY($volume, 1) && $close > DELAY($close, 1), 20) + COUNT($volume < DELAY($volume, 1) && $close < DELAY($close, 1), 20)) / 20",a1b8c3fd35604da887d192dfe7c4c3d2
+CumulativeAbnormalReturn_Sum_30D_VolTSZ,"TS_SUM($return - MEAN($return), 30) * TS_ZSCORE($volume, 30)",072bed3524ad419daa10abeb2ed981c3
+Volume_ZScore_Reversal_20D,"-$return * TS_ZSCORE($volume, 20)",29c737adb0ce465697917d9a9734cb3c
+Rel_Return_Vol_Zscore_20D,"TS_ZSCORE($volume,20)*(($return-MEAN($return))/(STD($return)+1e-8))",83f81005d32046ce89d8b782d7bd770f
+Intraday_Volume_Intensity_ZScore,ZSCORE(($close - $open) / ($open + 1e-8) * $volume),11995fbef9d648b287cd5899279b354c
+Reversal_Volume_ZScore_20D,"-$return * TS_ZSCORE($volume, 20)",3003e1e0e0244e45bb6a14b5a51ce10e
+Reversal_NegMom_VolZ_5D,"RANK(-TS_SUM($return,5)*TS_ZSCORE($volume,20))",05e7324530a34de7bff25c2212d6709a
+IntradayRange_RobustVolume_20D,"-(($high - $low) / ($close + 1e-8)) * (($volume - TS_MEDIAN($volume, 20)) / (TS_MAD($volume, 20) + 1e-8))",7b12ecd409734dabadafb5a3296b03c7
+Market_Corr_10D_Vol_Zscore_20D,"TS_CORR($return,MEAN($return),10)*TS_ZSCORE($volume,20)",431fc443f8504f68990bb039082166aa
+Daily_Reversal_Volume_Surge,"-1 * $return * ($volume / (TS_MEAN($volume, 20) + 1e-8))",34698c87d07b465db01552d45a6f3cca
+Reversal_NegMom_VolZ_10D,"RANK(-TS_SUM($return, 780) * TS_ZSCORE($volume, 2340))",e429d3cfc7e94fc4867946ace16d314d
+Sentiment_Momentum_Reversal_EMA12_SUM6,"-1 * EMA(($volume * SIGN($return)) / (ABS($volume * SIGN($return)) + 1e-8), 12) * TS_SUM($return, 6)",39c465e4b7c14d47a688a716901faf8c
+Close_Pos_10D_Vol_Zscore_20D,"TS_MEAN(($close-$low)/($high-$low+1e-8),10)*TS_ZSCORE($volume,20)",6658aa2d41ec4a92b6c2f2a6b2af308c
+Volume_Reversal_ZScore,"- TS_ZSCORE($return, 20) * TS_ZSCORE($volume, 20)",223cf40f2e4a401cbf808f1e1ec859dc
+Sentiment_Reversal_Volume_20D,"-SIGN($return) * ABS(TS_ZSCORE($return, 20)) * ($volume / (TS_MEAN($volume, 20) + 1e-8))",63c660943433498a921ef5007f656264
+Volume_Weighted_Book_Imbalance_10D,"TS_CORR($volume, $high - $low, 10) * TS_MEAN($volume, 10)",fbe8448e443145c5a68b77e8d1f4b523
+Reversal_ZScores_12D,"- (TS_ZSCORE($return, 12) * TS_ZSCORE($volume, 12))",b53da5971f4440a692b785d0eb08fa01
+UpDown_Volume_Imbalance_12D,"RANK((TS_SUM(($close > $open) ? $volume : 0, 12) - TS_SUM(($close < $open) ? $volume : 0, 12)) / (TS_SUM($volume, 12) + 1e-8))",8bc1c04a50c845e3a115ed9231741aed
+SMA_ReturnVolAdj_VolumeZScore_10,"TS_MEAN(($close / DELAY($close, 1) - 1) / (TS_STD(($close / DELAY($close, 1) - 1), 20) + 1e-8) * (($volume - TS_MEAN($volume, 50)) / (TS_STD($volume, 50) + 1e-8)), 10)",a09e10eda9c34132ab2ddaaa8c5bb86d
+Neg_Norm_Return_Vol_Ratio_20D,"-1 * TS_ZSCORE($return, 20) * ($volume / (TS_MEAN($volume, 60) + 1e-8))",c54c6409c1ee46d49ae636e371316ae0
+Overnight_Gap_Volume_Raw_Reversal_20D,"- (($open / (DELAY($close, 1) + 1e-8)) - 1) * ($volume / (TS_MEAN($volume, 20) + 1e-8))",38e7049562a54ae885c2a1760d4993f6
+Range_Volume_Reversal_20D,"-SIGN($close - $open) * (($high - $low) / (TS_MEAN($high - $low, 20) + 1e-8)) * ($volume / (TS_MEAN($volume, 20) + 1e-8))",a3339b22aecf430dab3561952b177dac
+OFI_Signed_Volume_Reversal_5D,"TS_CORR(SIGN(DELTA($close, 1)) * $volume, DELTA($close, 1), 5)",24fd47a9cb6140c682f605c6f28ac4ed
+CumulativeAbnormalReturn_Prod_30D_VolTSZ,"(PROD(1+$return, 30) - PROD(1+MEAN($return), 30)) * TS_ZSCORE($volume, 30)",23175f1c2b5c441c8d351658bd89f05e
+Reversal_SmoothedZScores_12D,"TS_MEAN(0 - (TS_ZSCORE($return, 12) * TS_ZSCORE($volume, 12)), 3)",764b82a2ad3c402397e5b0b04edeb49d
+Neg_Norm_Return_Vol_Ratio_10D,"-1 * TS_ZSCORE($return, 10) * ($volume / (TS_MEAN($volume, 20) + 1e-8))",12b361cb826844ff9200f0263a04c32b
+Cumulative_Return_Reversal_Volume_Surge_6D,"-1 * TS_SUM($return, 6) * ($volume / (TS_MEAN($volume, 20) + 1e-8))",5beb1c93c65b480b851692177bb9ce37
+Volume_Sentiment_Zscore_Reversal_10D,"-TS_MEAN($close / DELAY($close, 1) - 1, 5) * TS_ZSCORE(($close - $open) * $volume, 10)",d16ab7cadf254fe8aaeacfc4feb5b647
+CumulativeAbnormalReturn_Sum_10D_VolTSZ,"TS_SUM($return - MEAN($return), 10) * TS_ZSCORE($volume, 10)",934a6a17d86b4f0c91dd09333b67a225
+VolumeWeighted_IntradayImbalance_5D_EMA,"RANK(EMA($volume * ($close - $open), 5) / (EMA($volume, 5) + 1e-8))",a505de4d39434cb883f5197f2df33715
+Intraday_Reversal_Volume_Surge,"-1 * (($close - $open) / $open) * ($volume / (TS_MEAN($volume, 20) + 1e-8))",3569b2b81f3946ad88098caef223da10
+Intraday_Imbalance_Price_Impact_5D,"TS_CORR(($high - $low) / ($volume + 1e-8), $volume, 5)",d5787d04166a45fc8b5638fc554a48b5
+Overnight_Gap_VolSurge_ZScore_Reversal_20D,"ZSCORE(- (($open / (DELAY($close, 1) + 1e-8)) - 1) * TS_ZSCORE($volume, 20))",579cbfc0c74a41cbbc7847c1a4f7f54d
+RSI_Reversal_Volume_20D,"-SIGN($return) * ABS(RSI($close, 20) - 50) * ($volume / (TS_MEAN($volume, 20) + 1e-8))",aa4f8563c5594b1daca67e804e00b89d
+Sentiment_RSI_Reversal_EMA10_RSI10,"-1 * EMA(($volume * SIGN($return)) / (ABS($volume * SIGN($return)) + 1e-8), 10) * (RSI($return, 10) - 50)",5064f4489b724bf3b82936540561f33f

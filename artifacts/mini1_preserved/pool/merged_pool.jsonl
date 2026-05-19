@@ -1,0 +1,237 @@
+{"type": "hypothesis", "text": "The daily close location within the high-low range, normalized by the square root of volume, negatively predicts next-day returns due to intraday overextension and low liquidity."}
+{"type": "hypothesis", "text": "Stocks with closing price deviating significantly from VWAP, relative to daily range and accompanied by high volume, will experience a mean-reversion over the next few days."}
+{"type": "hypothesis", "text": "Today's opening price relative to yesterday's VWAP scaled by yesterday's intraday range predicts a short-term mean-reversion in returns."}
+{"type": "hypothesis", "text": "The overnight price gap relative to recent VWAP, adjusted by intraday volatility, predicts short-term return reversal due to market overreaction to overnight news."}
+{"type": "hypothesis", "text": "The divergence between volume-weighted and equal-weighted daily returns over a 20-day lookback captures institutional accumulation/distribution patterns, predicting future returns."}
+{"type": "hypothesis", "text": "Large overnight gaps relative to recent true range, when accompanied by shrinking relative volume, predict short-term price reversals due to exhaustion of the initial shock."}
+{"type": "hypothesis", "text": "Deviation of the 20-day volume-price return correlation from its 60-day historical average signals shifts in trend confirmation, predicting short-term reversals or continuations."}
+{"type": "hypothesis", "text": "The factor is the z-scored product of relative volume and close-to-VWAP deviation, capturing volume-confirmed price conviction to predict short-term returns."}
+{"type": "hypothesis", "text": "The 10-day EWMA of daily (close - VWAP)/VWAP, termed VWAP drift, positively predicts forward returns as it captures persistent informed buying pressure."}
+{"type": "hypothesis", "text": "Price momentum not confirmed by volume-weighted average price (VWAP) momentum over a 10-day window signals an unsustainable trend and predicts future return reversal."}
+{"type": "hypothesis", "text": "The interaction between intraday price location relative to VWAP and relative volume predicts short-term price continuation or reversal."}
+{"type": "hypothesis", "text": "Intraday volatility asymmetry, measured by the ratio of average down-day high-low range to up-day high-low range over a 20-day window, predicts negative future stock returns."}
+{"type": "expression", "text": "TS_ZSCORE(SUMIF($volume, 20, $return < 0) / (SUMIF($volume, 20, $return > 0) + 1e-8), 60)"}
+{"type": "expression", "text": "TS_ZSCORE(SUMIF($volume, 20, $return < 0) / (TS_SUM($volume, 20) + 1e-8), 60)"}
+{"type": "expression", "text": "TS_ZSCORE((SUMIF($volume, 20, $return < 0) - SUMIF($volume, 20, $return > 0)) / (TS_SUM($volume, 20) + 1e-8), 60)"}
+{"type": "expression", "text": "TS_ZSCORE(SUMIF($volume, 20, $close < DELAY($close,1)) / (SUMIF($volume, 20, $close > DELAY($close,1)) + 1e-8), 60)"}
+{"type": "expression", "text": "TS_ZSCORE(SUMIF($volume, 20, $close < DELAY($close, 1)) / (TS_SUM($volume, 20) + 1e-8), 60)"}
+{"type": "expression", "text": "TS_ZSCORE((SUMIF($volume, 20, DELTA($close, 1) < 0) - SUMIF($volume, 20, DELTA($close, 1) > 0)) / (TS_SUM($volume, 20) + 1e-8), 60)"}
+{"type": "expression", "text": "(TS_SUM($return * $volume, 20) / (TS_SUM($volume, 20) + 1e-8)) / (TS_MEAN($return, 20) + 1e-8)"}
+{"type": "expression", "text": "(SUMIF($volume, 20, $return > 0) - SUMIF($volume, 20, $return < 0)) / (TS_SUM($volume, 20) + 1e-8)"}
+{"type": "expression", "text": "(TS_SUM($return * $volume, 20) / (TS_SUM($volume, 20) + 1e-8) - TS_MEAN($return, 20)) / (TS_STD($return, 20) + 1e-8)"}
+{"type": "expression", "text": "(($close - (($high + $low + $close) / 3)) / MAX($high - $low, 1e-8)) * ($volume / (TS_MEAN($volume, 20) + 1e-8))"}
+{"type": "expression", "text": "(($close - EMA($close, 20)) / MAX($high - $low, 1e-8)) * ($volume / (TS_MEAN($volume, 20) + 1e-8))"}
+{"type": "expression", "text": "RANK((($close - $low) / ($high - $low + 1e-8)) * ($volume / TS_MEAN($volume, 20)))"}
+{"type": "expression", "text": "RANK((($close - $low) / ($high - $low + 1e-8)) - TS_MEAN(($close - $low) / ($high - $low + 1e-8), 5))"}
+{"type": "expression", "text": "ZSCORE((($close - $low) / ($high - $low + 1e-8)) * ($volume / TS_MEAN($volume, 20)))"}
+{"type": "expression", "text": "RANK((($close - $open) / ($high - $low + 1e-8)) * ($volume / TS_MEDIAN($volume, 20)))"}
+{"type": "expression", "text": "RANK(($close - $open) / ($high - $low + 1e-8)) * RANK($volume / TS_MEDIAN($volume, 20))"}
+{"type": "expression", "text": "RANK((($close - $open) / ($high - $low + 1e-8)) * TS_ZSCORE($volume, 20))"}
+{"type": "expression", "text": "EMA(SIGN($close - $open) * (ABS($close - $open) / (ABS($high - $low) + 1e-8)) * (($volume - TS_MEAN($volume, 20)) / (TS_STD($volume, 20) + 1e-8)), 5)"}
+{"type": "expression", "text": "EMA(SIGN($close - $open) * (ABS($close - $open) / (ABS($high - $low) + 1e-8)) * ($volume / (TS_MEDIAN($volume, 20) + 1e-8) - 1), 5)"}
+{"type": "expression", "text": "EMA(SIGN($close - $open) * (RANK(ABS($close - $open) / (ABS($high - $low) + 1e-8)) + RANK(($volume - TS_MEAN($volume, 20)) / (TS_STD($volume, 20) + 1e-8))), 5)"}
+{"type": "expression", "text": "($open - DELAY($close, 1)) / (DELAY($high, 1) - DELAY($low, 1) + 1e-6)"}
+{"type": "expression", "text": "($open - (DELAY($high,1)+DELAY($low,1)+DELAY($close,1))/3) / (DELAY($high,1) - DELAY($low,1) + 1e-6)"}
+{"type": "expression", "text": "(2*$close - $high - $low) / (($high - $low) + 1e-8) / (SQRT($volume) + 1e-8)"}
+{"type": "expression", "text": "ZSCORE((2*$close - $high - $low) / (($high - $low) + 1e-8) / (SQRT($volume) + 1e-8))"}
+{"type": "expression", "text": "TS_MEAN((2*$close - $high - $low) / (($high - $low) + 1e-8) / (SQRT($volume) + 1e-8), 5)"}
+{"type": "expression", "text": "TS_CORR(TS_RANK($return, 10), TS_RANK(TS_PCTCHANGE($volume, 1), 10), 10)"}
+{"type": "expression", "text": "TS_CORR($return, TS_PCTCHANGE($volume, 1), 10)"}
+{"type": "expression", "text": "(TS_SUM(TS_PCTCHANGE($close, 1) * $volume, 20) / (TS_SUM($volume, 20) + 1e-8)) / (TS_MEAN(TS_PCTCHANGE($close, 1), 20) + 1e-8)"}
+{"type": "expression", "text": "($close - (TS_SUM($close * $volume, 10) / TS_SUM($volume, 10))) / (TS_STD($close, 10) + 1e-8)"}
+{"type": "expression", "text": "($close - ($high + $low + $close) / 3) / (TS_STD($close, 10) + 1e-8)"}
+{"type": "expression", "text": "(SUMIF($volume, 20, DELTA($close, 1) > 0) - SUMIF($volume, 20, DELTA($close, 1) < 0)) / (TS_SUM($volume, 20) + 1e-8)"}
+{"type": "expression", "text": "EMA(($close - $open) / ($high - $low + 1e-8), 10)"}
+{"type": "expression", "text": "EMA(($close - ($high + $low)/2) / ($high - $low + 1e-8), 10)"}
+{"type": "expression", "text": "(($close - (($high + $low)/2)) / (($high - $low) + 1e-8)) * ($volume / (TS_MEAN($volume, 20) + 1e-8))"}
+{"type": "expression", "text": "(($close - (($high + $low + $close)/3)) / (($high - $low) + 1e-8)) * ($volume / (TS_MEAN($volume, 20) + 1e-8))"}
+{"type": "expression", "text": "RANK((($close - (($high + $low)/2)) / (($high - $low) + 1e-8)) * ($volume / (TS_MEAN($volume, 20) + 1e-8)))"}
+{"type": "expression", "text": "TS_COVARIANCE($volume, $return, 20) / (TS_VAR($return, 20) + 1e-8)"}
+{"type": "expression", "text": "RANK(TS_COVARIANCE($volume, $return, 20) / (TS_VAR($return, 20) + 1e-8))"}
+{"type": "expression", "text": "TS_COVARIANCE($volume, $return, 10) / (TS_VAR($return, 10) + 1e-8)"}
+{"type": "expression", "text": "-(DELTA(DELTA(3*$close/($high+$low+$close)-1, 1), 1)) / (TS_STD(3*$close/($high+$low+$close)-1, 20) + 1e-8)"}
+{"type": "expression", "text": "($close / TS_MEAN($close, 20) - 1) * ($volume / TS_MEAN($volume, 20))"}
+{"type": "expression", "text": "-(DELTA(DELTA($close/$open-1, 1), 1)) / (TS_STD($close/$open-1, 20) + 1e-8)"}
+{"type": "expression", "text": "($close / (($high + $low + $close) / 3) - 1) * ($volume / TS_MEAN($volume, 20))"}
+{"type": "expression", "text": "(($close - $open) / $open) * ($volume / TS_MEAN($volume, 20))"}
+{"type": "expression", "text": "-(DELTA(DELTA($close/TS_MEAN($close,5)-1, 1), 1)) / (TS_STD($close/TS_MEAN($close,5)-1, 20) + 1e-8)"}
+{"type": "expression", "text": "ABS($close - DELAY($close, 20)) / (TS_SUM(ABS($high - $low), 20) + 1e-8)"}
+{"type": "expression", "text": "ABS($close - DELAY($close, 20)) / (TS_STD($return, 20) * SQRT(20) + 1e-8)"}
+{"type": "expression", "text": "RSI($close, 14)"}
+{"type": "expression", "text": "-( (($close - $low)/($high - $low + 1e-8) - TS_MEAN(($close - $low)/($high - $low + 1e-8), 20)) * (TS_RANK($volume, 20) / 20) )"}
+{"type": "expression", "text": "TS_SUM($return, 20) / (TS_SUM(ABS($return) / ($close * $volume), 20) + 1e-8)"}
+{"type": "expression", "text": "ZSCORE(TS_SUM($return, 20) / (TS_SUM(ABS($return) / ($close * $volume), 20) + 1e-8))"}
+{"type": "expression", "text": "TS_COVARIANCE($volume, TS_PCTCHANGE($close, 1), 20) / (TS_VAR(TS_PCTCHANGE($close, 1), 20) + 1e-8)"}
+{"type": "expression", "text": "RANK((($open - SMA($close, 10, 1)) / (TS_MEAN($high - $low, 10) + 1e-8)))"}
+{"type": "expression", "text": "RANK(TS_ZSCORE($open - DELAY($close, 1), 10))"}
+{"type": "expression", "text": "RANK(($high - $low)/$close * MAX($volume / SMA($volume, 20) - 1, 0))"}
+{"type": "expression", "text": "RANK(TS_MEAN(($high - $low)/$close * ($volume / SMA($volume, 20) - 1), 5))"}
+{"type": "expression", "text": "RANK(($volume / SMA($volume, 20) - 1) * TS_STD($close, 20) / ($high - $low + 1e-8))"}
+{"type": "expression", "text": "RANK(TS_COVARIANCE($volume, TS_PCTCHANGE($close, 1), 20) / (TS_VAR(TS_PCTCHANGE($close, 1), 20) + 1e-8))"}
+{"type": "expression", "text": "TS_COVARIANCE($volume, TS_PCTCHANGE($close, 1), 10) / (TS_VAR(TS_PCTCHANGE($close, 1), 10) + 1e-8)"}
+{"type": "expression", "text": "TS_SUM($volume * $return, 20) / TS_SUM($volume, 20) - TS_MEAN($return, 20)"}
+{"type": "expression", "text": "TS_SUM($volume * $return, 10) / TS_SUM($volume, 10) - TS_MEAN($return, 10)"}
+{"type": "expression", "text": "TS_SUM($volume * $return, 20) / TS_SUM($volume, 20)"}
+{"type": "expression", "text": "TS_PCTCHANGE($close, 20) / (TS_SUM(ABS(TS_PCTCHANGE($close, 1)) / ($close * $volume), 20) + 1e-8)"}
+{"type": "expression", "text": "TS_MEAN(($high+$low+$close)/3/$close - 1, 10)"}
+{"type": "expression", "text": "TS_MEAN(($high+$low+$close)/3/$close - 1, 20)"}
+{"type": "expression", "text": "EMA(($high+$low+$close)/3/$close - 1, 10)"}
+{"type": "expression", "text": "RANK((($open - TS_MEAN(DELAY($close, 1), 10)) / (TS_MEAN(DELAY($high - $low, 1), 10) + 1e-8)))"}
+{"type": "expression", "text": "RANK((EMA($high - $low, 10) / (EMA($close, 10) + 1e-8)) * ($volume / (TS_MEAN($volume, 20) + 1e-8)))"}
+{"type": "expression", "text": "COUNT($high - $low > TS_MEAN($high - $low, 20) && $volume > TS_MEAN($volume, 20), 10)"}
+{"type": "expression", "text": "RANK(EMA($high - $low, 10) * TS_ZSCORE($volume, 20))"}
+{"type": "expression", "text": "ZSCORE(($close / DELAY($close, 20) - 1) / (TS_MEAN(ABS($close / DELAY($close, 1) - 1) / ($close * $volume), 20) + 1e-8))"}
+{"type": "expression", "text": "ABS($close - DELAY($close, 20)) / (TS_STD(($close / (DELAY($close, 1) + 1e-8) - 1), 20) * SQRT(20) + 1e-8)"}
+{"type": "expression", "text": "-(DELTA(DELTA(3*$close/($high+$low+$close)-1, 5), 5)) / (TS_STD(3*$close/($high+$low+$close)-1, 20) + 1e-8)"}
+{"type": "expression", "text": "TS_SUM($volume * TS_PCTCHANGE($close, 1), 20) / TS_SUM($volume, 20) - TS_MEAN(TS_PCTCHANGE($close, 1), 20)"}
+{"type": "expression", "text": "RANK(($high - $low)/$close * MAX($volume / SMA($volume, 20, 1) - 1, 0))"}
+{"type": "expression", "text": "TS_SUM($volume * TS_PCTCHANGE($close, 1), 10) / TS_SUM($volume, 10) - TS_MEAN(TS_PCTCHANGE($close, 1), 10)"}
+{"type": "expression", "text": "-(DELTA(DELTA($close/$open-1, 5), 5)) / (TS_STD($close/$open-1, 20) + 1e-8)"}
+{"type": "expression", "text": "RANK(TS_MEAN(($high - $low)/$close * ($volume / TS_MEAN($volume, 20) - 1), 5))"}
+{"type": "expression", "text": "TS_SUM($volume * TS_PCTCHANGE($close, 1), 20) / TS_SUM($volume, 20)"}
+{"type": "expression", "text": "TS_SUM(TS_PCTCHANGE($close, 1), 20) / (TS_SUM(ABS(TS_PCTCHANGE($close, 1)) / ($close * $volume), 20) + 1e-8)"}
+{"type": "expression", "text": "RANK((($high - $low) / (EMA($close, 10) + 1e-8)) * ($volume / (TS_MEAN($volume, 20) + 1e-8)))"}
+{"type": "expression", "text": "ZSCORE(TS_SUM($close / DELAY($close, 1) - 1, 20) / (TS_SUM(ABS($close / DELAY($close, 1) - 1) / ($close * $volume), 20) + 1e-8))"}
+{"type": "expression", "text": "EMA(($close - ($high + $low + $close) / 3) / ($high - $low + 1e-8), 20)"}
+{"type": "expression", "text": "EMA((($close - ($high + $low + $close) / 3) * $volume) / (TS_MEAN($volume, 20) * ($high - $low + 1e-8)), 20)"}
+{"type": "expression", "text": "RANK(EMA(($close - ($high + $low + $close) / 3) / ($high - $low + 1e-8), 20))"}
+{"type": "expression", "text": "($open - DELAY(TS_MEAN($close, 10), 1)) / (DELAY(TS_MEAN($high - $low, 10), 1) + 1e-8)"}
+{"type": "expression", "text": "ABS($close - DELAY($close, 20)) / (TS_STD(TS_PCTCHANGE($close, 1), 20) * SQRT(20) + 1e-8)"}
+{"type": "expression", "text": "TS_MEAN(SIGN($return) * SIGN(DELTA($volume, 1)), 10)"}
+{"type": "expression", "text": "TS_ZSCORE($open - DELAY($close, 1), 10)"}
+{"type": "expression", "text": "((($high - $low) > 0) ? ((($close - (($high + $low)/2)) / ($high - $low)) * ($volume / (TS_MEAN($volume, 20) + 1e-8))) : 0)"}
+{"type": "expression", "text": "RANK(($open - DELAY(TS_MEAN($close, 10), 1)) / (DELAY(TS_MEAN($high - $low, 10), 1) + 1e-8))"}
+{"type": "expression", "text": "TS_CORR(TS_PCTCHANGE($close, 1), TS_PCTCHANGE($volume, 1), 10)"}
+{"type": "expression", "text": "TS_MEAN(SIGN($close - DELAY($close, 1)) * SIGN(DELTA($volume, 1)), 10)"}
+{"type": "expression", "text": "ABS(TS_PCTCHANGE($close, 20)) / (TS_STD(TS_PCTCHANGE($close, 1), 20) * SQRT(20) + 1e-8)"}
+{"type": "expression", "text": "ZSCORE(TS_SUM($close / DELAY($close, 1) - 1, 20) / (TS_SUM(ABS($close / DELAY($close, 1) - 1) / ($close * MAX($volume, 1e-8)), 20) + 1e-8))"}
+{"type": "expression", "text": "EMA((($close - (($high+$low+$close)/3)) / ($high - $low + 1e-8)) * ($volume / TS_MEAN($volume, 20) - 1), 10)"}
+{"type": "expression", "text": "EMA(((2 * ($close - $low) / ($high - $low + 1e-8)) - 1) * ($volume / TS_MEAN($volume, 20) - 1), 10)"}
+{"type": "expression", "text": "-(DELTA(DELTA(($close/TS_MEAN($close,5)-1), 1), 1)) / (TS_STD(($close/TS_MEAN($close,5)-1), 20) + 1e-8)"}
+{"type": "expression", "text": "(TS_SUM($volume * TS_PCTCHANGE($close, 1), 10) / TS_SUM($volume, 10)) - TS_MEAN(TS_PCTCHANGE($close, 1), 10)"}
+{"type": "expression", "text": "EMA(($close - ($high + $low + $close) / 3) / MAX($high - $low, 1e-8), 20)"}
+{"type": "expression", "text": "RANK((($volume / TS_MEAN($volume, 20) - 1) * TS_STD($close, 20)) / ($high - $low + 1e-8))"}
+{"type": "expression", "text": "EMA((($close - ($high + $low + $close) / 3) * ($volume / TS_MEAN($volume, 20))) / ($high - $low + 1e-8), 20)"}
+{"type": "expression", "text": "ZSCORE(($close / DELAY($close, 20) - 1) / (TS_SUM(ABS($close / DELAY($close, 1) - 1) / ($close * MAX($volume, 1e-8)), 20) + 1e-8))"}
+{"type": "expression", "text": "SMA(TS_ZSCORE((2*$close - $high - $low)/($high - $low + 1e-6), 30), 10)"}
+{"type": "expression", "text": "SMA(TS_ZSCORE(($close - $open)/($high - $low + 1e-6), 30), 10)"}
+{"type": "expression", "text": "SMA(TS_ZSCORE(($close - TS_MEAN($close, 20))/($high - $low + 1e-6), 30), 10)"}
+{"type": "expression", "text": "(TS_SUM($volume * TS_PCTCHANGE($close, 1), 20) / TS_SUM($volume, 20)) - TS_MEAN(TS_PCTCHANGE($close, 1), 20)"}
+{"type": "expression", "text": "RANK(- TS_ZSCORE($close/(($high+$low+$close)/3)-1, 20) * TS_ZSCORE($volume, 20))"}
+{"type": "expression", "text": "RANK(- TS_ZSCORE($close - ($high+$low)/2, 20) * TS_ZSCORE($volume, 20))"}
+{"type": "expression", "text": "RANK(- (($close - TS_MIN($low,20)) / (TS_MAX($high,20)-TS_MIN($low,20)+1e-8)) * TS_ZSCORE($volume,20))"}
+{"type": "expression", "text": "-(((($close - $low)/($high - $low + 1e-8)) - EMA((($close - $low)/($high - $low + 1e-8)), 20)) * TS_ZSCORE($volume, 20))"}
+{"type": "expression", "text": "-(DELTA(DELTA($close/$open-1, 5), 5)) / (TS_STD(DELTA(DELTA($close/$open-1, 5), 5), 20) + 1e-8)"}
+{"type": "expression", "text": "TS_STD(($high - $low) / ($volume + 1e-8), 5) / (TS_MEAN(($high - $low) / ($volume + 1e-8), 20) + 1e-8)"}
+{"type": "expression", "text": "TS_MEAN(($high - $low) / ($volume + 1e-8), 5) / (TS_MEAN(($high - $low) / ($volume + 1e-8), 20) + 1e-8)"}
+{"type": "expression", "text": "TS_STD(($high - $low) / ($volume + 1e-8), 5) / (TS_STD(($high - $low) / ($volume + 1e-8), 20) + 1e-8)"}
+{"type": "expression", "text": "EMA((2 * ($close - $low) / ($high - $low + 1e-8) - 1) * ($volume / TS_MEAN($volume, 20) - 1), 10)"}
+{"type": "expression", "text": "EMA(($close - ($high + $low + $close) / 3) / ($high - $low), 20)"}
+{"type": "expression", "text": "RANK(($open - TS_MEAN(DELAY($close, 1), 10)) / (TS_MEAN(DELAY($high - $low, 1), 10) + 1e-8))"}
+{"type": "expression", "text": "ABS(TS_PCTCHANGE($close, 20)) / (TS_STD(TS_PCTCHANGE($close, 1), 20) * SQRT(20))"}
+{"type": "expression", "text": "SMA(TS_ZSCORE((2*$close - $high - $low)/(2*($high - $low + 1e-6)), 30), 10, 1)"}
+{"type": "expression", "text": "((($high - $low) > 0) ? ((($close - (($high + $low) / 2)) / ($high - $low)) * ($volume / (TS_MEAN($volume, 20) + 1e-8))) : 0)"}
+{"type": "expression", "text": "ZSCORE(TS_SUM(($close / DELAY($close, 1) - 1), 20) / (TS_SUM(ABS($close / DELAY($close, 1) - 1) / ($close * MAX($volume, 1e-8)), 20) + 1e-8))"}
+{"type": "expression", "text": "COUNT((($high - $low) > TS_MEAN($high - $low, 20)) && ($volume > TS_MEAN($volume, 20)), 10)"}
+{"type": "expression", "text": "RANK(-(TS_ZSCORE($close - ($high+$low)/2, 20) * TS_ZSCORE($volume, 20)))"}
+{"type": "expression", "text": "-RANK((($close - TS_MIN($low,20)) / (TS_MAX($high,20)-TS_MIN($low,20)+1e-8)) * TS_ZSCORE($volume,20))"}
+{"type": "expression", "text": "EMA((($close - ($high + $low + $close) / 3) * ($volume / (TS_MEAN($volume, 20) + 1e-8))) / ($high - $low + 1e-8), 20)"}
+{"type": "expression", "text": "RANK((($high - $low)/$close) * MAX($volume / TS_MEAN($volume, 20) - 1, 0))"}
+{"type": "expression", "text": "ABS(DELTA($close, 20)) / (TS_STD(DELTA($close, 1), 20) * SQRT(20))"}
+{"type": "expression", "text": "EMA((2 * ($close - $low) / (MAX($high - $low, 0.0001)) - 1) * ($volume / TS_MEAN($volume, 20) - 1), 10)"}
+{"type": "expression", "text": "TS_STD(($high - $low) / $close, 20) / (TS_MEAN(ABS($volume * ($close - ($high + $low + $close) / 3)), 20) + 1e-8)"}
+{"type": "expression", "text": "TS_STD(($high - $low) / $close, 10) / (TS_MEAN(ABS($volume * ($close - ($high + $low + $close) / 3)), 10) + 1e-8)"}
+{"type": "expression", "text": "RANK(TS_STD(($high - $low) / $close, 20) / (TS_MEAN(ABS($volume * ($close - ($high + $low + $close) / 3)), 20) + 1e-8))"}
+{"type": "expression", "text": "-RANK(TS_ZSCORE($close/(($high+$low+$close)/3)-1, 20) * TS_ZSCORE($volume, 20))"}
+{"type": "expression", "text": "TS_MEAN($vwap/$close - 1, 20)"}
+{"type": "expression", "text": "($close - (($high + $low + $close)/3)) / (($high - $low) + 1e-8) * ($volume / (TS_MEAN($volume, 20) + 1e-8))"}
+{"type": "expression", "text": "TS_PCTCHANGE($vwap, 10) - TS_PCTCHANGE($close, 10)"}
+{"type": "expression", "text": "SMA(TS_ZSCORE(($close - SMA($close, 20))/($high - $low + 1e-6), 30), 10)"}
+{"type": "expression", "text": "($open - TS_MEAN(DELAY($close, 1), 10)) / (TS_MEAN(DELAY($high - $low, 1), 10) + 1e-8)"}
+{"type": "expression", "text": "EMA($vwap/$close - 1, 10)"}
+{"type": "expression", "text": "RANK(REGBETA(LOG($close), SEQUENCE(20), 20) / (TS_STD(REGBETA(LOG($close), SEQUENCE(20), 20), 60) + 1e-8) - REGBETA($volume, SEQUENCE(20), 20) / (TS_STD(REGBETA($volume, SEQUENCE(20), 20), 60) + 1e-8))"}
+{"type": "expression", "text": "RANK(TS_CORR($return, DELTA($volume, 1), 20))"}
+{"type": "expression", "text": "RANK((TS_MEAN($return, 20) / (TS_STD($return, 20)+1e-8)) - (TS_MEAN(DELTA($volume, 1), 20) / (TS_STD(DELTA($volume, 1), 20)+1e-8)))"}
+{"type": "expression", "text": "TS_MEAN(($high + $low + $close) / (3 * $close) - 1, 20)"}
+{"type": "expression", "text": "SIGN($close - $open) * LOG($volume / TS_MEAN($volume, 20)) * (ABS((MIN($open, $close) - $low) - ($high - MAX($open, $close))) / ($high - $low + 1e-8))"}
+{"type": "expression", "text": "RANK(SIGN($close - $open) * LOG($volume / TS_MEAN($volume, 20)) * (ABS((MIN($open, $close) - $low) - ($high - MAX($open, $close))) / ($high - $low + 1e-8)))"}
+{"type": "expression", "text": "SIGN($close - $open) * TS_ZSCORE($volume, 20) * (ABS((MIN($open, $close) - $low) - ($high - MAX($open, $close))) / ($high - $low + 1e-8))"}
+{"type": "expression", "text": "SMA(TS_ZSCORE((2*$close - $high - $low)/($high - $low + 1e-6), 30), 10, 1)"}
+{"type": "expression", "text": "EMA(($high + $low + $close) / (3 * $close) - 1, 10)"}
+{"type": "expression", "text": "TS_MEAN(SIGN(TS_PCTCHANGE($close, 1)) * SIGN(DELTA($volume, 1)), 10)"}
+{"type": "expression", "text": "RANK((($high - $low) / (EMA($close, 10) + 1e-8)) * (EMA($volume / (TS_MEAN($volume, 20) + 1e-8), 10)))"}
+{"type": "expression", "text": "RANK(TS_COVARIANCE($volume, TS_PCTCHANGE($close, 1), 20) / (TS_VAR($volume, 20) + 1e-8))"}
+{"type": "expression", "text": "-RANK(TS_ZSCORE($close - ($high+$low)/2, 20) * TS_ZSCORE($volume, 20))"}
+{"type": "expression", "text": "(TS_SUM($volume * $return, 20) / TS_SUM($volume, 20)) - TS_MEAN($return, 20)"}
+{"type": "expression", "text": "RANK(-(($close - TS_MIN($low,20)) / (TS_MAX($high,20)-TS_MIN($low,20)+1e-8) * TS_ZSCORE($volume,20)))"}
+{"type": "expression", "text": "TS_STD(($high - $low) / MAX($volume, 1e-8), 5) / (TS_STD(($high - $low) / MAX($volume, 1e-8), 20) + 1e-8)"}
+{"type": "expression", "text": "TS_MEAN(TS_ZSCORE(($close - $open)/($high - $low + 1e-6), 30), 10)"}
+{"type": "expression", "text": "ABS($close - DELAY($close, 20)) / (TS_STD(TS_PCTCHANGE($close, 1), 20) * SQRT(20))"}
+{"type": "expression", "text": "ZSCORE(($close / DELAY($close, 20) - 1) / (TS_MEAN(ABS($close / DELAY($close, 1) - 1) / ($close * MAX($volume, 1e-8)), 20) + 1e-8))"}
+{"type": "expression", "text": "-RANK(TS_ZSCORE($close - ($high+$low+$close)/3, 20) * TS_ZSCORE($volume, 20))"}
+{"type": "expression", "text": "-1 * RANK(TS_ZSCORE($close - ($high+$low)/2, 20) * TS_ZSCORE($volume, 20))"}
+{"type": "expression", "text": "-RANK((($close - TS_MIN($low,20)) / (TS_MAX($high,20)-TS_MIN($low,20)+1e-8) * TS_ZSCORE($volume,20)))"}
+{"type": "expression", "text": "TS_MEAN($vwap / $close - 1, 20)"}
+{"type": "expression", "text": "EMA($vwap / $close - 1, 10)"}
+{"type": "expression", "text": "EMA(($close - ($high + $low + $close) / 3) * $volume / (TS_MEAN($volume, 20) * MAX($high - $low, 1e-8)), 20)"}
+{"type": "expression", "text": "TS_MEAN(TS_ZSCORE(($close - TS_MEAN($close, 20))/($high - $low + 1e-6), 30), 10)"}
+{"type": "expression", "text": "ZSCORE(TS_SUM(($close / DELAY($close, 1) - 1), 20) / (TS_MEAN(ABS($close / DELAY($close, 1) - 1) / ($close * MAX($volume, 1e-8)), 20) + 1e-8))"}
+{"type": "expression", "text": "RANK(TS_STD(($high - $low) / $close, 20) / (TS_MEAN(ABS($volume * ($close - $open)), 20) + 1e-8))"}
+{"type": "expression", "text": "EMA(($high != $low) ? (($close - ($high + $low + $close) / 3) / ($high - $low)) : 0, 20)"}
+{"type": "expression", "text": "-RANK(TS_ZSCORE($close/(($high+$low+$close)/3) - 1, 20) * TS_ZSCORE($volume, 20))"}
+{"type": "expression", "text": "-RANK(($close - TS_MIN($low,20)) / (TS_MAX($high,20)-TS_MIN($low,20)+1e-8) * TS_ZSCORE($volume,20))"}
+{"type": "expression", "text": "SMA(TS_ZSCORE((2*$close - $high - $low)/(2*($high - $low) + 1e-6), 30), 10, 1)"}
+{"type": "expression", "text": "TS_MEAN(TS_ZSCORE(($close - TS_MEAN($close, 20))/($high - $low + 0.000001), 30), 10)"}
+{"type": "expression", "text": "RANK(-TS_ZSCORE($close - ($high+$low)/2, 20) * TS_ZSCORE($volume, 20))"}
+{"type": "expression", "text": "-RANK(($close - TS_MIN($low,20)) / (TS_MAX($high,20)-TS_MIN($low,20)+1e-8) * ZSCORE($volume))"}
+{"type": "expression", "text": "-RANK(TS_ZSCORE(3*$close/($high+$low+$close)-1, 20) * TS_ZSCORE($volume, 20))"}
+{"type": "expression", "text": "-RANK(($close - TS_MIN($low,20)) / (TS_MAX($high,20) - TS_MIN($low,20) + 1e-8) * TS_ZSCORE($volume,20))"}
+{"type": "expression", "text": "SIGN($close - $open) * TS_ZSCORE($volume, 20) * (($high - MAX($open, $close)) - (MIN($open, $close) - $low)) / ($high - $low + 1e-8)"}
+{"type": "expression", "text": "TS_MEAN(TS_ZSCORE(($close - $open)/($high - $low + 0.000001), 30), 10)"}
+{"type": "expression", "text": "SMA(TS_ZSCORE(($close - TS_MEAN($close, 20))/($high - $low + 0.000001), 30), 10)"}
+{"type": "expression", "text": "-RANK((($close - TS_MIN($low, 20)) / (TS_MAX($high, 20) - TS_MIN($low, 20) + 1e-8)) * TS_ZSCORE($volume, 20))"}
+{"type": "expression", "text": "SIGN($close - $open) * TS_ZSCORE($volume, 20) * ABS(($high - MAX($open, $close)) - (MIN($open, $close) - $low)) / ($high - $low + 1e-8)"}
+{"type": "expression", "text": "TS_MEAN(TS_ZSCORE((($high - $low) > 0) ? (($close - $open)/($high - $low)) : 0, 30), 10)"}
+{"type": "expression", "text": "SMA(TS_ZSCORE(($close - TS_MEAN($close, 20))/($high - $low + 0.000001), 30), 10, 1)"}
+{"type": "expression", "text": "-SIGN(TS_MEAN($return, 5)) * (($high - $low) / (TS_MEAN($high - $low, 14) + 1e-8)) / (SMA($volume, 5) / (SMA($volume, 20) + 1e-8) + 1e-8)"}
+{"type": "expression", "text": "-SIGN(TS_MEAN($return, 5)) * TS_CORR($high - $low, $volume, 20)"}
+{"type": "expression", "text": "-SIGN(TS_MEAN($return, 5)) * TS_ZSCORE($high - $low, 20) / (SMA($volume, 5) / (SMA($volume, 20) + 1e-8) + 1e-8)"}
+{"type": "expression", "text": "SIGN(TS_PCTCHANGE($close, 5)) * (($high - $low) / (TS_MEAN($high - $low, 14) + 1e-8)) / (TS_MEAN($volume, 5) / (TS_MEAN($volume, 20) + 1e-8) + 1e-8)"}
+{"type": "expression", "text": "-SIGN(TS_PCTCHANGE($close, 5)) * TS_CORR($high - $low, $volume, 20)"}
+{"type": "expression", "text": "(-SIGN(TS_PCTCHANGE($close, 5))) * TS_ZSCORE($high - $low, 20) / (TS_MEAN($volume, 5) / (TS_MEAN($volume, 20) + 1e-8) + 1e-8)"}
+{"type": "expression", "text": "-SIGN(TS_MEAN(TS_PCTCHANGE($close, 1), 5)) * TS_CORR($high - $low, $volume, 20)"}
+{"type": "expression", "text": "(-SIGN(TS_MEAN($return, 5))) * TS_ZSCORE($high - $low, 20) / (TS_MEAN($volume, 5) / (TS_MEAN($volume, 20) + 1e-8) + 1e-8)"}
+{"type": "expression", "text": "-SIGN(TS_PCTCHANGE($close, 5)) * (($high - $low) / (TS_MEAN($high - $low, 14) + 1e-8)) / (TS_MEAN($volume, 5) / (TS_MEAN($volume, 20) + 1e-8) + 1e-8)"}
+{"type": "expression", "text": "-SIGN(TS_MEAN(($close / DELAY($close, 1) - 1), 5)) * TS_CORR($high - $low, $volume, 20)"}
+{"type": "expression", "text": "(-SIGN(TS_PCTCHANGE($close, 5))) * TS_ZSCORE($high - $low, 20) * (TS_MEAN($volume, 20) / (TS_MEAN($volume, 5) + 1e-8))"}
+{"type": "expression", "text": "SIGN(TS_MEAN($return,5)) * (($high - $low) / (TS_MEAN($high - $low, 14) + 1e-8)) / (TS_MEAN($volume, 5) / (TS_MEAN($volume, 20) + 1e-8) + 1e-8)"}
+{"type": "expression", "text": "(-SIGN(TS_MEAN(TS_PCTCHANGE($close, 1), 5))) * TS_ZSCORE($high - $low, 20) * (TS_MEAN($volume, 20) / (TS_MEAN($volume, 5) + 1e-8))"}
+{"type": "expression", "text": "-SIGN($open - DELAY($close,1)) * (ABS($open - DELAY($close,1)) / TS_MEAN(MAX($high - $low, ABS($close - DELAY($close,1))), 20))"}
+{"type": "expression", "text": "-SIGN($open - DELAY($close,1)) * (ABS($open - DELAY($close,1)) / TS_MEAN(MAX($high - $low, ABS($close - DELAY($close,1))), 20)) * (1 - $volume / TS_MEAN($volume, 5))"}
+{"type": "expression", "text": "-SIGN($open - DELAY($close,1)) * (ABS($open - DELAY($close,1)) / TS_MEAN(MAX(MAX($high - $low, ABS($high - DELAY($close,1))), ABS($low - DELAY($close,1))), 20))"}
+{"type": "expression", "text": "-SIGN(TS_MEAN($return,5)) * (($high - $low) / (TS_MEAN($high - $low, 14) + 1e-8)) / (TS_MEAN($volume, 5) / (TS_MEAN($volume, 20) + 1e-8) + 1e-8)"}
+{"type": "expression", "text": "(DELAY($close, 1) - $open) / TS_MEAN(MAX(MAX($high - $low, ABS($high - DELAY($close, 1))), ABS($low - DELAY($close, 1))), 20)"}
+{"type": "expression", "text": "-SIGN($open - DELAY($close,1)) * (ABS($open - DELAY($close,1)) / TS_MEAN(MAX($high - $low, ABS($high - DELAY($close,1)), ABS($low - DELAY($close,1))), 20)) * (1 - $volume / TS_MEAN($volume, 5))"}
+{"type": "expression", "text": "SIGN(TS_PCTCHANGE($close,5)) * (($high - $low) / (TS_MEAN($high - $low, 14) + 1e-8)) / (TS_MEAN($volume, 5) / (TS_MEAN($volume, 20) + 1e-8) + 1e-8)"}
+{"type": "expression", "text": "-SIGN($open - DELAY($close,1)) * (ABS($open - DELAY($close,1)) / TS_MEAN(MAX(MAX($high - $low, ABS($high - DELAY($close,1))), ABS($low - DELAY($close,1))), 20)) * (1 - $volume / TS_MEAN($volume, 5))"}
+{"type": "expression", "text": "(-SIGN(TS_MEAN(TS_PCTCHANGE($close, 1), 5))) * TS_ZSCORE($high - $low, 20) / (TS_MEAN($volume, 5) / (TS_MEAN($volume, 20) + 1e-8) + 1e-8)"}
+{"type": "expression", "text": "SIGN(TS_PCTCHANGE($close,5)) * ($high - $low) / (TS_MEAN($high - $low, 14) + 1e-8) * (TS_MEAN($volume, 20) + 1e-8) / (TS_MEAN($volume, 5) + 1e-8)"}
+{"type": "expression", "text": "-(TS_ZSCORE(($close - $low)/($high - $low + 1e-8), 20) * (TS_RANK($volume, 20) / 20))"}
+{"type": "expression", "text": "TS_ZSCORE(TS_SKEW($return, 20), 60)"}
+{"type": "expression", "text": "TS_ZSCORE(SUMIF($volume, 20, $return > 0) - SUMIF($volume, 20, $return < 0), 60)"}
+{"type": "expression", "text": "TS_ZSCORE(TS_SKEW($return * $volume / (TS_MEAN($volume, 20) + 1e-8), 20), 60)"}
+{"type": "expression", "text": "TS_ZSCORE((TS_MEAN(POW($close / DELAY($close, 1) - 1, 3), 20) - 3 * TS_MEAN($close / DELAY($close, 1) - 1, 20) * TS_MEAN(POW($close / DELAY($close, 1) - 1, 2), 20) + 2 * POW(TS_MEAN($close / DELAY($close, 1) - 1, 20), 3)) / POW(TS_STD($close / DELAY($close, 1) - 1, 20), 3), 60)"}
+{"type": "expression", "text": "TS_ZSCORE(SUMIF($volume, 20, $close > DELAY($close,1)) - SUMIF($volume, 20, $close < DELAY($close,1)), 60)"}
+{"type": "expression", "text": "TS_ZSCORE(TS_MEAN(POW((($close / DELAY($close, 1) - 1) * $volume / (TS_MEAN($volume, 20) + 1e-8) - TS_MEAN(($close / DELAY($close, 1) - 1) * $volume / (TS_MEAN($volume, 20) + 1e-8), 20)), 3), 20) / (POW(TS_STD(($close / DELAY($close, 1) - 1) * $volume / (TS_MEAN($volume, 20) + 1e-8), 20), 3) + 1e-8), 60)"}
+{"type": "expression", "text": "RANK(SIGN($open - DELAY($close, 1)) * SIGN($close - $open) * ($volume / TS_MEAN($volume, 20) - 1))"}
+{"type": "expression", "text": "RANK(SIGN($open - DELAY($close, 1)) * SIGN($close - $open) * TS_ZSCORE($volume, 20))"}
+{"type": "expression", "text": "COUNT((SIGN($open - DELAY($close, 1)) == SIGN($close - $open)) && ($volume > TS_MEAN($volume, 20)), 5)"}
+{"type": "expression", "text": "COUNT((SIGN($open - DELAY($close, 1)) * SIGN($close - $open) > 0) && ($volume > TS_MEAN($volume, 20)), 5)"}
+{"type": "expression", "text": "TS_ZSCORE(TS_MEAN(POW(TS_ZSCORE(($close / DELAY($close, 1) - 1) * $volume / (TS_MEAN($volume, 20) + 1e-8), 20), 3), 20), 60)"}
+{"type": "expression", "text": "TS_ZSCORE(TS_MEAN(POW(($close/DELAY($close,1)-1) - TS_MEAN($close/DELAY($close,1)-1,20), 3), 20) / POW(TS_STD($close/DELAY($close,1)-1, 20), 3), 60)"}
+{"type": "expression", "text": "TS_ZSCORE(TS_SKEW(($close / DELAY($close, 1) - 1) * $volume / (TS_MEAN($volume, 20) + 1e-8), 20), 60)"}
+{"type": "expression", "text": "TS_ZSCORE(TS_MEAN(POW(($close / DELAY($close, 1) - 1) * $volume / (TS_MEAN($volume, 20) + 1e-8) - TS_MEAN(($close / DELAY($close, 1) - 1) * $volume / (TS_MEAN($volume, 20) + 1e-8), 20), 3), 20) / (POW(TS_STD(($close / DELAY($close, 1) - 1) * $volume / (TS_MEAN($volume, 20) + 1e-8), 20), 3) + 1e-8), 60)"}
+{"type": "hypothesis", "text": "Concurrent alignment of overnight gap direction and intraday return direction, amplified by volume deviation, predicts short-term continuation when aligned and reversal when directions conflict."}
+{"type": "hypothesis", "text": "Volume-weighted skewness of daily returns over a 20-day window, normalized by a 60-day rolling z-score, may capture asymmetric informed flow; verify operators supported in your function library."}
+{"type": "hypothesis", "text": "When daily price acceleration (second difference) is large versus its 20-day volatility and volume is below its 5-day average, mean-reversion is more likely."}
+{"type": "hypothesis", "text": "Five-day acceleration of intraday closing bias, normalized by 20-day volatility, may proxy institutional pressure exhaustion (directional hypothesis for further testing)."}

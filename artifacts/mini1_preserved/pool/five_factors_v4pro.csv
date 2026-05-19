@@ -1,0 +1,6 @@
+factor_name,factor_expression
+VWAP_Proxy_Range_Corr_20D,"TS_CORR(($close - ($high+$low+$close)/3) / ($high - $low + 1e-8), $volume / TS_MEAN($volume, 20) - 1, 20)"
+ClosePosition_VolZScore_Corr_15D,"TS_CORR(($close - $low) / ($high - $low + 1e-8), TS_ZSCORE($volume, 20), 15)"
+Volume_Weighted_Midpoint_Closing_Strength_20D_60D_ZScore,"TS_ZSCORE(SUMIF($volume, 20, $close > ($high+$low)/2) / (TS_SUM($volume, 20) + 1e-8), 60)"
+CrossSectional_Volume_Midpoint_Proportion_20D,"ZSCORE(SUMIF($volume, 20, $close > ($high+$low)/2) / (TS_SUM($volume, 20) + 1e-8))"
+ShortTerm_Volume_Midpoint_Proportion_10D_30D_ZScore,"TS_ZSCORE(SUMIF($volume, 10, $close > ($high+$low)/2) / (TS_SUM($volume, 10) + 1e-8), 30)"
