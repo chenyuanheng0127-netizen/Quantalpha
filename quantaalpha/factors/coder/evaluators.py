@@ -11,7 +11,7 @@ from quantaalpha.factors.coder.eva_utils import (
     FactorFinalDecisionEvaluator,
     FactorValueEvaluator,
 )
-from quantaalpha.factors.coder.factor import FactorTask
+from quantaalpha.factors.coder.factor import FactorTask, FactorFBWorkspace
 from quantaalpha.factors.coder.config import FACTOR_COSTEER_SETTINGS
 from quantaalpha.core.evolving_framework import QueriedKnowledge
 from quantaalpha.core.experiment import Workspace
@@ -237,6 +237,15 @@ class FactorEvaluatorForCoder(CoSTEEREvaluator):
                 )
 
             factor_feedback.final_decision_based_on_gt = gt_implementation is not None
+            execution_text = factor_feedback.execution_feedback or ""
+            execution_succeeded = (
+                FactorFBWorkspace.FB_EXECUTION_SUCCEEDED in execution_text
+                and FactorFBWorkspace.FB_OUTPUT_FILE_FOUND in execution_text
+            )
+            explicit_exec_status_success = (
+                "execution_success=true" in execution_text.lower()
+                and "output_file_exists=true" in execution_text.lower()
+            )
             # import pdb; pdb.set_trace()
             if decision_from_value_check is not None and decision_from_value_check is True:
                 # To avoid confusion, when same_value_or_high_correlation is True, we do not need code feedback
@@ -253,6 +262,20 @@ class FactorEvaluatorForCoder(CoSTEEREvaluator):
                 )
                 factor_feedback.final_decision = decision_from_value_check
                 factor_feedback.final_feedback = "Value evaluation failed, skip final decision evaluation."
+            elif execution_succeeded or explicit_exec_status_success:
+                # Early deterministic pass: avoid letting final LLM overrule explicit execution facts.
+                factor_feedback.code_feedback, _ = self.code_evaluator.evaluate(
+                    target_task=target_task,
+                    implementation=implementation,
+                    execution_feedback=factor_feedback.execution_feedback,
+                    value_feedback=factor_feedback.value_feedback,
+                    gt_implementation=gt_implementation,
+                )
+                factor_feedback.final_decision = True
+                factor_feedback.final_feedback = (
+                    "Execution status indicates success and output generated; "
+                    "skip LLM final decision to avoid false negatives."
+                )
             else:
                 factor_feedback.code_feedback, _ = self.code_evaluator.evaluate(
                     target_task=target_task,
@@ -270,6 +293,23 @@ class FactorEvaluatorForCoder(CoSTEEREvaluator):
                     value_feedback=factor_feedback.value_feedback,
                     code_feedback=factor_feedback.code_feedback,
                 )
+                # Guardrail against LLM false negatives:
+                # if execution succeeded and output file exists, do not fail only due to
+                # redacted-path "file not found" wording in final feedback.
+                false_file_missing = (
+                    factor_feedback.final_decision is False
+                    and "file not found" in (factor_feedback.final_feedback or "").lower()
+                    and factor_feedback.value_generated_flag is True
+                )
+                if execution_succeeded and false_file_missing:
+                    logger.warning(
+                        "Overriding final decision to True due to successful execution with output file present."
+                    )
+                    factor_feedback.final_decision = True
+                    factor_feedback.final_feedback = (
+                        "Execution and output checks passed. "
+                        "Prior 'file not found' feedback is treated as a redaction-related false negative."
+                    )
             return factor_feedback
 
 

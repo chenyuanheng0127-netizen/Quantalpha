@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import subprocess
 import uuid
 from pathlib import Path
@@ -121,7 +122,11 @@ class FactorFBWorkspace(FBWorkspace):
 
         """
         super().execute()
-        if self.code_dict is None or "factor.py" not in self.code_dict:
+        if (
+            self.code_dict is None
+            or "factor.py" not in self.code_dict
+            or not str(self.code_dict.get("factor.py", "")).strip()
+        ):
             if self.raise_exception:
                 raise CodeFormatError(self.FB_CODE_NOT_SET)
             else:
@@ -154,6 +159,29 @@ class FactorFBWorkspace(FBWorkspace):
                 from quantaalpha.log import logger
                 logger.warning(f"Data folder {source_data_path} does not exist or is empty. Skipping linking.")
 
+            workspace_output_file_path = self.workspace_path / "result.h5"
+            result_hash_path = self.workspace_path / ".result_hash"
+            result_hash = md5_hash(
+                self.code_dict["factor.py"] + "|" + os.environ.get("MINI1_TRAIN_PARQUET", "")
+            )
+            if workspace_output_file_path.exists() and result_hash_path.exists():
+                cached_hash = result_hash_path.read_text().strip()
+                if cached_hash == result_hash:
+                    try:
+                        executed_factor_value_dataframe = pd.read_hdf(workspace_output_file_path)
+                        execution_feedback = (
+                            self.FB_EXECUTION_SUCCEEDED
+                            + self.FB_OUTPUT_FILE_FOUND
+                            + "\n[EXEC_STATUS] code_file_exists=True;"
+                            + " execution_success=true;"
+                            + " output_file_exists=true;"
+                            + " cache_hit=true"
+                        )
+                        return execution_feedback, executed_factor_value_dataframe
+                    except Exception:
+                        # Fall through to recompute if the cached HDF is unreadable.
+                        pass
+
             execution_feedback = self.FB_EXECUTION_SUCCEEDED
             execution_success = False
             execution_error = None
@@ -161,12 +189,18 @@ class FactorFBWorkspace(FBWorkspace):
             if self.target_task.version == 1:
                 execution_code_path = code_path
             elif self.target_task.version == 2:
-                execution_code_path = self.workspace_path / f"{uuid.uuid4()}.py"
-                execution_code_path.write_text((Path(__file__).parent / "factor_execution_template.txt").read_text())
+                # Fallback to direct factor.py execution if template is missing.
+                template_path = Path(__file__).parent / "factor_execution_template.txt"
+                if template_path.exists():
+                    execution_code_path = self.workspace_path / f"{uuid.uuid4()}.py"
+                    execution_code_path.write_text(template_path.read_text())
+                else:
+                    execution_code_path = code_path
+            else:
+                execution_code_path = code_path
 
             try:
                 # Set PYTHONPATH to include the project root so quantaalpha can be imported
-                import os
                 env = os.environ.copy()
                 project_root = Path(__file__).parent.parent.parent.parent.parent
                 pythonpath = str(project_root)
@@ -174,11 +208,15 @@ class FactorFBWorkspace(FBWorkspace):
                     env['PYTHONPATH'] = pythonpath + ':' + env['PYTHONPATH']
                 else:
                     env['PYTHONPATH'] = pythonpath
-                
+
+                # Resolve script and cwd: if workspace_path is relative (default data/results/...),
+                # passing a repo-root-relative script path together with cwd=workspace makes the
+                # interpreter look under workspace/<that path> → FileNotFoundError / "can't open file".
+                ws_cwd = self.workspace_path.resolve()
+                script_abs = Path(execution_code_path).resolve()
                 subprocess.check_output(
-                    f"{FACTOR_COSTEER_SETTINGS.python_bin} {execution_code_path}",
-                    shell=True,
-                    cwd=self.workspace_path,
+                    [str(FACTOR_COSTEER_SETTINGS.python_bin), str(script_abs)],
+                    cwd=str(ws_cwd),
                     stderr=subprocess.STDOUT,
                     timeout=FACTOR_COSTEER_SETTINGS.file_based_execution_timeout,
                     env=env,
@@ -187,9 +225,10 @@ class FactorFBWorkspace(FBWorkspace):
             except subprocess.CalledProcessError as e:
                 import site
 
+                script_abs = Path(execution_code_path).resolve()
                 execution_feedback = (
                     e.output.decode()
-                    .replace(str(execution_code_path.parent.absolute()), r"/path/to")
+                    .replace(str(script_abs.parent), r"/path/to")
                     .replace(str(site.getsitepackages()[0]), r"/path/to/site-packages")
                 )
                 if len(execution_feedback) > 2000:
@@ -207,10 +246,11 @@ class FactorFBWorkspace(FBWorkspace):
                 else:
                     execution_error = CustomRuntimeError(execution_feedback)
 
-            workspace_output_file_path = self.workspace_path / "result.h5"
+            output_found = workspace_output_file_path.exists()
             if workspace_output_file_path.exists() and execution_success:
                 try:
                     executed_factor_value_dataframe = pd.read_hdf(workspace_output_file_path)
+                    result_hash_path.write_text(result_hash)
                     execution_feedback += self.FB_OUTPUT_FILE_FOUND
                 except Exception as e:
                     execution_feedback += f"Error found when reading hdf file: {e}"[:1000]
@@ -222,6 +262,13 @@ class FactorFBWorkspace(FBWorkspace):
                     raise NoOutputError(execution_feedback)
                 else:
                     execution_error = NoOutputError(execution_feedback)
+
+            # Append structured execution status to avoid downstream LLM misinterpretation.
+            execution_feedback += (
+                f"\n[EXEC_STATUS] code_file_exists={code_path.exists()};"
+                f" execution_success={execution_success};"
+                f" output_file_exists={output_found}"
+            )
 
         return execution_feedback, executed_factor_value_dataframe
 

@@ -41,6 +41,7 @@ evolving_strategy_factor_implementation_v1_system: |-
   User is trying to implement some factors in the following scenario:
   {{ scenario }}
   Your code is expected to align the scenario in any form which means The user needs to get the exact factor values with your code as expected.
+  For the MAFS5140 mini1 run, do not read "./daily_pv.h5" or any other local HDF5 source data file. Use mini1/train.parquet only through quantaalpha.factors.mini1_train_loader.compute_factor_from_train(expr, name), then save the returned factor values to "result.h5".
 
   To help you write the correct code, the user might provide multiple information that helps you write the correct code:
   1. The user might provide you the correct code to similar factors. Your should learn from these code to write the correct code.
@@ -186,6 +187,9 @@ evaluator_final_decision_v1_system: |-
   1. If the value and the ground truth value are exactly the same under a small tolerance, the implementation is considered correct.
   2. If the value and the ground truth value have a high correlation on ic or rank ic, the implementation is considered correct.
   3. If no ground truth value is provided, the implementation is considered correct if the code executes successfully (assuming the data provided is correct). Any exceptions, including those actively raised, are considered faults of the code. Additionally, the code feedback must align with the scenario and factor description.
+  4. IMPORTANT: Some execution logs may contain anonymized/redacted paths for privacy (for example "/path/to/..."). Redacted paths do NOT imply missing files.
+  5. If execution feedback explicitly says execution succeeded and output file found, you should NOT return false solely because of any "file not found" wording in other feedback text.
+  6. Prioritize concrete execution signals (success/timeout/traceback/output file found) over speculative interpretation.
 
   Please response the critic in the json format, without any other content. Here is an example structure for the JSON output, please strictly follow the format:
   {

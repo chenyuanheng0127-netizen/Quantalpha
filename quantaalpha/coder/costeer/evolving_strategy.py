@@ -64,6 +64,9 @@ class MultiProcessEvolvingStrategy(EvolvingStrategy):
         # Find tasks to evolve
         to_be_finished_task_index = []
         for index, target_task in enumerate(evo.sub_tasks):
+            if queried_knowledge is None:
+                to_be_finished_task_index.append(index)
+                continue
             target_task_desc = target_task.get_task_information()
             if target_task_desc in queried_knowledge.success_task_to_knowledge_dict:
                 evo.sub_workspace_list[index] = queried_knowledge.success_task_to_knowledge_dict[

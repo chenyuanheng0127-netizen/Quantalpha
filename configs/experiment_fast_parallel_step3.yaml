@@ -1,0 +1,82 @@
+# QuantaAlpha fast run config (A方案)
+# 目标：只跑 propose/construct/calculate（step_n=3），避免进入 qlib 回测阶段，
+# 同时打开并行以尽量占用多核，快速产出可用因子表达式/实现。
+
+planning:
+  enabled: true
+  # 并行探索方向：用于并行进化任务的并发度
+  num_directions: 2
+  max_attempts: 3
+  use_llm: true
+  allow_fallback: true
+  prompt_file: planning_prompts.yaml
+
+execution:
+  max_loops: 1
+  steps_per_loop: 5
+  step_n: null
+  use_local: true
+  parallel_execution: true
+  branch_log_root: log
+  branch_log_prefix: branch
+
+evolution:
+  enabled: true
+  mutation_enabled: false
+  crossover_enabled: false
+  # 由于我们用 step_n=3，会在回测前停止；这里给一个小值避免多轮无谓扩展
+  max_rounds: 1
+
+  crossover_size: 2
+  crossover_n: 1
+
+  # 关键：并行执行 evolution tasks
+  parallel_enabled: true
+  prefer_diverse_crossover: true
+  prompt_file: evolution_prompts.yaml
+  parent_selection_strategy: best
+  top_percent_threshold: 0.3
+
+  fresh_start: true
+  cleanup_on_finish: false
+
+quality_gate:
+  # step_n=3时大部分 LLM consistency 不会触发，但这里也关掉，减少额外调用/重试
+  consistency_enabled: false
+  complexity_enabled: true
+  redundancy_enabled: false
+  consistency_strict_mode: false
+  max_correction_attempts: 1
+
+factor:
+  factors_per_hypothesis: 1
+  complexity:
+    symbol_length_threshold: 180
+    base_features_threshold: 6
+    free_args_ratio_threshold: 0.5
+  duplication:
+    enabled: false
+    threshold: 5
+    factor_zoo_path: /home/ubuntu/chenyuanhengWorkspace/MAFS5140-Spring2026-Project/mini1_results/pool/factor_zoo_pool.csv
+
+backtest:
+  use_docker: false
+  timeout: 200
+  qlib:
+    config_name: conf_baseline.yaml
+
+llm:
+  factor_mining_timeout: 999999
+  max_retries: 3
+  retry_delay: 8.0
+  json_mode_strict: true
+
+logging:
+  level: INFO
+  save_snapshots: true
+  save_trajectory_pool: true
+
+prompts:
+  planning: planning_prompts.yaml
+  evolution: evolution_prompts.yaml
+

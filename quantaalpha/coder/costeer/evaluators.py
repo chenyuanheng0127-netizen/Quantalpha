@@ -34,6 +34,33 @@ class CoSTEERSingleFeedback(Feedback):
         self.value_generated_flag = value_generated_flag
         self.final_decision_based_on_gt = final_decision_based_on_gt
 
+    @property
+    def execution(self) -> str:
+        """Compatibility with rdagent CoSTEER feedback schema."""
+        return self.execution_feedback
+
+    @execution.setter
+    def execution(self, value: str) -> None:
+        self.execution_feedback = value
+
+    @property
+    def return_checking(self) -> str:
+        """Compatibility with rdagent CoSTEER feedback schema."""
+        return self.value_feedback
+
+    @return_checking.setter
+    def return_checking(self, value: str) -> None:
+        self.value_feedback = value
+
+    @property
+    def code(self) -> str:
+        """Compatibility with rdagent CoSTEER feedback schema."""
+        return self.code_feedback
+
+    @code.setter
+    def code(self, value: str) -> None:
+        self.code_feedback = value
+
     def __str__(self) -> str:
         return f"""------------------Execution Feedback------------------
 {self.execution_feedback if self.execution_feedback is not None else 'No execution feedback'}

@@ -38,12 +38,12 @@ def RANK(df:pd.DataFrame):
 @datatype_adapter
 def MEAN(df:pd.DataFrame):
     """Cross-sectional mean."""
-    return df.groupby('datetime').mean()
+    return df.groupby('datetime').transform('mean')
 
 @datatype_adapter
 def STD(df:pd.DataFrame):
     """Cross-sectional std."""
-    return df.groupby('datetime').std()
+    return df.groupby('datetime').transform('std')
 
 @datatype_adapter
 def SKEW(df:pd.DataFrame):
@@ -582,8 +582,8 @@ def TS_ZSCORE(df: pd.DataFrame, p:int=5):
 
 @datatype_adapter
 def ZSCORE(df):
-    mean = df.groupby('datetime').mean()
-    std = df.groupby('datetime').std()
+    mean = df.groupby('datetime').transform('mean')
+    std = df.groupby('datetime').transform('std')
     zscore = (df - mean) / std
     return zscore
 

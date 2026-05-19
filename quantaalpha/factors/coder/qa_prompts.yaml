@@ -121,6 +121,7 @@ evolving_strategy_factor_implementation_v1_system: |-
   {{ scenario }}
 
   An executable factor expression is expected to align the factor descrption if it is possible to implement using available data and operations. 
+  The fixed execution template for the MAFS5140 mini1 run evaluates expressions from mini1/train.parquet. Do not propose code or expressions that require "./daily_pv.h5" or any other local HDF5 source data file.
 
   To help you write the correct expressions, the user might provide multiple information that helps you write the correct expression:
   1. The user might provide you the correct expression to similar factors. Your should learn from these expression to write the correct expression.

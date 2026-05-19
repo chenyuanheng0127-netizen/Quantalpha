@@ -344,10 +344,17 @@ def run_evolution_loop(
     crossover_enabled = bool(evolution_cfg.get("crossover_enabled", True))
     parent_selection_strategy = str(evolution_cfg.get("parent_selection_strategy", "best"))
     top_percent_threshold = float(evolution_cfg.get("top_percent_threshold", 0.3))
-    log_root = str(logger.log_trace_path)
     parallel_enabled = bool(evolution_cfg.get("parallel_enabled", False))
     fresh_start = bool(evolution_cfg.get("fresh_start", True))
     cleanup_on_finish = bool(evolution_cfg.get("cleanup_on_finish", False))
+
+    resume_dir = os.environ.get("QUANTA_LOG_RESUME_DIR", "").strip()
+    if resume_dir and not fresh_start:
+        log_root = resume_dir
+        logger.set_trace_path(Path(log_root))
+        logger.info(f"Resume log root: {log_root}")
+    else:
+        log_root = str(logger.log_trace_path)
 
     # Generate initial directions
     planning_enabled = bool(planning_cfg.get("enabled", False))
@@ -396,6 +403,14 @@ def run_evolution_loop(
     )
 
     controller = EvolutionController(config)
+
+    if resume_dir and not fresh_start:
+        state_path = Path(log_root) / "evolution_state.json"
+        if state_path.exists():
+            controller.load_state(state_path)
+            logger.info(f"Loaded evolution state from {state_path}")
+        else:
+            logger.warning(f"Resume requested but missing {state_path}")
 
     logger.info("="*60)
     logger.info("Starting evolution loop")

@@ -48,17 +48,23 @@ class CoSTEER(Developer[Experiment]):
         self.evaluator = eva
         self.evolving_version = evolving_version
 
-        # init knowledge base
-        self.knowledge_base = self.load_or_init_knowledge_base(
-            former_knowledge_base_path=self.knowledge_base_path,
-            component_init_list=[],
-        )
-        # init rag method
+        # init RAG (loads knowledge base internally; rdagent-compatible signature)
         self.rag = (
-            CoSTEERRAGStrategyV2(self.knowledge_base, settings=settings)
+            CoSTEERRAGStrategyV2(
+                settings=settings,
+                former_knowledge_base_path=self.knowledge_base_path,
+                dump_knowledge_base_path=self.new_knowledge_base_path,
+                evolving_version=self.evolving_version,
+            )
             if self.evolving_version == 2
-            else CoSTEERRAGStrategyV1(self.knowledge_base, settings=settings)
+            else CoSTEERRAGStrategyV1(
+                settings=settings,
+                former_knowledge_base_path=self.knowledge_base_path,
+                dump_knowledge_base_path=self.new_knowledge_base_path,
+                evolving_version=self.evolving_version,
+            )
         )
+        self.knowledge_base = self.rag.knowledgebase
 
     def load_or_init_knowledge_base(self, former_knowledge_base_path: Path = None, component_init_list: list = []):
         if former_knowledge_base_path is not None and former_knowledge_base_path.exists():
